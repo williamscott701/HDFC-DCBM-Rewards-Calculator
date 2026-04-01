@@ -1,0 +1,3092 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HDFC Rewards Tracker</title>
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='grad' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='100' height='100' rx='20' fill='url(%23grad)'/%3E%3Ctext x='50' y='65' font-family='Arial,sans-serif' font-size='45' font-weight='bold' fill='white' text-anchor='middle'%3EH%3C/text%3E%3Cpath d='M 70 25 L 75 30 L 60 45 L 55 40 Z' fill='%23ffd700' stroke='%23ffa500' stroke-width='1.5'/%3E%3Ccircle cx='75' cy='30' r='3' fill='%23ffd700'/%3E%3C/svg%3E">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', sans-serif;
+            background: #f5f7fa;
+            color: #2c3e50;
+            padding: 0;
+            min-height: 100vh;
+        }
+
+        .top-bar {
+            background: #ffffff;
+            border-bottom: 1px solid #e9ecef;
+            padding: 16px 24px;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.04);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .left-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .logo-section h1 {
+            color: #2c3e50;
+            font-size: 1.5em;
+            font-weight: 600;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .card-selector {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-selector label {
+            color: #495057;
+            font-size: 0.85em;
+            font-weight: 500;
+            margin: 0;
+            white-space: nowrap;
+        }
+
+        .card-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ced4da;
+            border-radius: 6px;
+            background: #ffffff;
+            color: #495057;
+            font-size: 0.9em;
+            min-width: 200px;
+            cursor: pointer;
+        }
+
+        .file-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-actions .file-input-wrapper {
+            margin: 0;
+        }
+
+        .file-actions .file-label {
+            padding: 8px 18px;
+            font-size: 0.9em;
+        }
+
+        .file-actions button {
+            padding: 8px 18px;
+            font-size: 0.9em;
+        }
+
+        .file-actions .file-name {
+            margin: 0;
+            padding: 0 12px;
+            color: #7f8c8d;
+            font-size: 0.85em;
+            font-style: italic;
+            white-space: nowrap;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 32px 24px;
+        }
+
+        .section-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .file-input-wrapper {
+            display: inline-block;
+            position: relative;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 11px 24px;
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: #ffffff;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-size: 0.95em;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .file-label::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        .file-label:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .file-label i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .file-label span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .file-label:hover {
+            background: linear-gradient(135deg, #3e9bee 0%, #00d9ee 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .file-label:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(79, 172, 254, 0.3);
+        }
+
+        .form-section {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 18px;
+            margin-bottom: 20px;
+        }
+        
+        @media (max-width: 1400px) {
+            .form-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 900px) {
+            .form-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            color: #495057;
+            margin-bottom: 6px;
+            font-weight: 500;
+            font-size: 0.9em;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        input[type="date"],
+        select {
+            padding: 10px 14px;
+            border: 1px solid #ced4da;
+            border-radius: 8px;
+            background: #ffffff;
+            color: #495057;
+            font-size: 0.95em;
+            transition: all 0.2s;
+        }
+
+        input[type="text"]:focus,
+        input[type="number"]:focus,
+        input[type="date"]:focus,
+        select:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        input[type="checkbox"] {
+            margin-right: 6px;
+            cursor: pointer;
+        }
+
+        select option {
+            background: #ffffff;
+            color: #495057;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        button {
+            padding: 11px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 0.95em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        button::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.6s, height 0.6s;
+        }
+
+        button:hover::before {
+            width: 300px;
+            height: 300px;
+        }
+
+        button i {
+            position: relative;
+            z-index: 1;
+        }
+
+        button span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #ffffff;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5568d3 0%, #6a3f8f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: #ffffff;
+        }
+
+        .btn-secondary:hover {
+            background: linear-gradient(135deg, #e082ea 0%, #e4465b 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(240, 147, 251, 0.4);
+        }
+
+        .btn-secondary:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(240, 147, 251, 0.3);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+            color: #ffffff;
+        }
+
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #e95f89 0%, #edd02f 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(250, 112, 154, 0.4);
+        }
+
+        .btn-danger:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(250, 112, 154, 0.3);
+        }
+
+        .stats-section {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .stat-label {
+            color: #7f8c8d;
+            font-size: 0.85em;
+            margin-bottom: 8px;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .stat-label i {
+            font-size: 1.1em;
+            color: #95a5a6;
+        }
+
+        .stat-value {
+            color: #2c3e50;
+            font-size: 1.6em;
+            font-weight: 600;
+        }
+
+        .section-divider {
+            height: 2px;
+            background: linear-gradient(to right, transparent, #e9ecef, transparent);
+            margin: 40px 0;
+            position: relative;
+        }
+
+        .section-divider::after {
+            content: '⬇';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            background: #f5f7fa;
+            padding: 0 16px;
+            color: #95a5a6;
+            font-size: 1.2em;
+        }
+
+        .pending-rewards-section {
+            background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+            border: 2px solid #e9ecef;
+            border-radius: 12px;
+            padding: 28px;
+            margin-bottom: 24px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+        }
+
+        .pending-rewards-section h3 {
+            padding-bottom: 12px;
+            border-bottom: 2px solid #e9ecef;
+            margin-bottom: 24px !important;
+        }
+
+        .pending-rewards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        .pending-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
+            border: 1px solid #e9ecef;
+            border-left: 4px solid #3498db;
+            border-radius: 8px;
+            padding: 16px;
+            transition: all 0.2s;
+        }
+
+        .pending-card:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .pending-card.multiplier-10x {
+            border-left-color: #e74c3c;
+        }
+
+        .pending-card.multiplier-5x {
+            border-left-color: #f39c12;
+        }
+
+        .pending-card.multiplier-3x {
+            border-left-color: #27ae60;
+        }
+
+        .pending-card h4 {
+            color: #2c3e50;
+            font-size: 0.95em;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .multiplier-badge {
+            background: #3498db;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+
+        .multiplier-10x .multiplier-badge {
+            background: #e74c3c;
+        }
+
+        .multiplier-5x .multiplier-badge {
+            background: #f39c12;
+        }
+
+        .multiplier-3x .multiplier-badge {
+            background: #27ae60;
+        }
+
+        .pending-details {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 0.9em;
+        }
+
+        .pending-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .pending-label {
+            color: #7f8c8d;
+            font-size: 0.85em;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .pending-label i {
+            font-size: 0.9em;
+        }
+
+        .pending-value {
+            color: #2c3e50;
+            font-weight: 600;
+        }
+
+        .pending-value.success {
+            color: #27ae60;
+        }
+
+        .pending-value.warning {
+            color: #f39c12;
+        }
+
+        .pending-value.danger {
+            color: #e74c3c;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: #e9ecef;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: #3498db;
+            transition: width 0.3s;
+        }
+
+        .multiplier-10x .progress-fill {
+            background: #e74c3c;
+        }
+
+        .multiplier-5x .progress-fill {
+            background: #f39c12;
+        }
+
+        .multiplier-3x .progress-fill {
+            background: #27ae60;
+        }
+
+        .transactions-table {
+            background: #ffffff;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+            margin-bottom: 40px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 16px;
+            position: relative;
+            table-layout: fixed;
+        }
+
+        thead {
+            background: #f8f9fa;
+            position: relative;
+        }
+
+        th {
+            padding: 14px 16px;
+            text-align: left;
+            color: #495057;
+            font-weight: 600;
+            font-size: 0.9em;
+            border-bottom: 2px solid #e9ecef;
+            cursor: help;
+            position: relative;
+            overflow: visible;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        /* Hide default browser tooltip */
+        th[title] {
+            pointer-events: auto;
+        }
+
+        th[title]:hover {
+            text-decoration: underline dotted;
+            color: #667eea;
+        }
+
+        /* Custom tooltip for table headers */
+        th[title]::after {
+            content: attr(title);
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(8px);
+            background: rgba(0, 0, 0, 0.9);
+            color: white;
+            padding: 10px 14px;
+            border-radius: 6px;
+            font-size: 0.85em;
+            font-weight: 400;
+            white-space: normal;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 99999;
+            max-width: 500px;
+            min-width: 200px;
+            text-align: left;
+            line-height: 1.5;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        th[title]:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(12px);
+        }
+
+        /* Tooltip arrow */
+        th[title]::before {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(2px);
+            border: 6px solid transparent;
+            border-bottom-color: rgba(0, 0, 0, 0.9);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s, transform 0.2s;
+            z-index: 99999;
+        }
+
+        th[title]:hover::before {
+            opacity: 1;
+            transform: translateX(-50%) translateY(6px);
+        }
+
+        td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #f1f3f5;
+            font-size: 0.9em;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        tbody tr {
+            transition: background 0.15s;
+        }
+
+        tbody tr:hover {
+            background: #f8f9fa;
+        }
+
+        tbody tr.excluded {
+            opacity: 0.6;
+        }
+
+        /* Month color coding */
+        tbody tr.month-color-0 {
+            background-color: #f0f9ff;
+        }
+
+        tbody tr.month-color-1 {
+            background-color: #fef3e2;
+        }
+
+        tbody tr.month-color-2 {
+            background-color: #f0fdf4;
+        }
+
+        tbody tr.month-color-3 {
+            background-color: #fef2f2;
+        }
+
+        tbody tr.month-color-4 {
+            background-color: #faf5ff;
+        }
+
+        tbody tr.month-color-5 {
+            background-color: #ecfdf5;
+        }
+
+        tbody tr.month-color-0:hover,
+        tbody tr.month-color-1:hover,
+        tbody tr.month-color-2:hover,
+        tbody tr.month-color-3:hover,
+        tbody tr.month-color-4:hover,
+        tbody tr.month-color-5:hover {
+            filter: brightness(0.95);
+        }
+
+        .delete-btn {
+            background: linear-gradient(135deg, #f857a6 0%, #ff5858 100%);
+            color: white;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85em;
+            font-weight: 600;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .delete-btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+            transform: translate(-50%, -50%);
+            transition: width 0.4s, height 0.4s;
+        }
+
+        .delete-btn:hover::before {
+            width: 150px;
+            height: 150px;
+        }
+
+        .delete-btn i {
+            position: relative;
+            z-index: 1;
+        }
+
+        .delete-btn span {
+            position: relative;
+            z-index: 1;
+        }
+
+        .delete-btn:hover {
+            background: linear-gradient(135deg, #e74695 0%, #ee4747 100%);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(248, 87, 166, 0.4);
+        }
+
+        .delete-btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 6px rgba(248, 87, 166, 0.3);
+        }
+
+        /* Editable input styles */
+        .editable-input,
+        .editable-select {
+            width: 100%;
+            padding: 4px 8px;
+            border: 2px solid #3498db;
+            border-radius: 4px;
+            font-size: 0.9em;
+            font-family: inherit;
+            box-sizing: border-box;
+            background: #fff;
+        }
+
+        .editable-input:focus,
+        .editable-select:focus {
+            outline: none;
+            border-color: #2980b9;
+            box-shadow: 0 0 0 3px rgba(52, 152, 219, 0.1);
+        }
+
+        .edit-actions {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
+        .edit-actions input,
+        .edit-actions select {
+            flex: 1;
+            min-width: 100px;
+        }
+
+        .edit-btn-group {
+            display: flex;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+
+        .save-btn, .cancel-btn {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75em;
+            font-weight: 600;
+            transition: all 0.2s;
+            white-space: nowrap;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .save-btn {
+            background: #27ae60;
+            color: white;
+        }
+
+        .save-btn:hover {
+            background: #229954;
+            transform: translateY(-1px);
+        }
+
+        .cancel-btn {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .cancel-btn:hover {
+            background: #7f8c8d;
+            transform: translateY(-1px);
+        }
+
+        #alertContainer {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            max-width: 400px;
+        }
+
+        .alert {
+            padding: 14px 18px;
+            border-radius: 10px;
+            font-weight: 500;
+            font-size: 0.95em;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            animation: slideIn 0.3s ease-out;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            opacity: 0.95;
+        }
+
+        .alert.hiding {
+            animation: slideOut 0.3s ease-in forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 0.95;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 0.95;
+            }
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        .alert-success {
+            background: linear-gradient(135deg, #d4edda 0%, #c3e6cb 100%);
+            border-left: 4px solid #28a745;
+            color: #155724;
+        }
+
+        .alert-error {
+            background: linear-gradient(135deg, #f8d7da 0%, #f5c6cb 100%);
+            border-left: 4px solid #dc3545;
+            color: #721c24;
+        }
+
+        .alert-info {
+            background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%);
+            border-left: 4px solid #17a2b8;
+            color: #0c5460;
+        }
+
+        @media (max-width: 768px) {
+            #alertContainer {
+                top: 60px;
+                right: 10px;
+                left: 10px;
+                max-width: none;
+            }
+        }
+
+        h3 {
+            font-size: 1.15em;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        @media (max-width: 1024px) {
+            .top-bar {
+                flex-wrap: wrap;
+                padding: 12px 16px;
+            }
+
+            .left-section {
+                flex: 1;
+                min-width: 250px;
+            }
+
+            .file-actions {
+                flex-wrap: wrap;
+                justify-content: flex-end;
+            }
+
+            .file-actions .file-name {
+                width: 100%;
+                text-align: right;
+                padding: 4px 0 0 0;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .top-bar {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+                padding: 12px 16px;
+            }
+
+            .left-section {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 12px;
+            }
+
+            .logo-section h1 {
+                font-size: 1.25em;
+                white-space: normal;
+                text-align: center;
+            }
+
+            .card-selector {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 6px;
+            }
+
+            .card-selector select {
+                width: 100%;
+                min-width: auto;
+            }
+
+            .file-actions {
+                justify-content: center;
+                flex-wrap: wrap;
+            }
+
+            .file-actions .file-name {
+                text-align: center;
+                max-width: 100%;
+            }
+
+            .container {
+                padding: 20px 16px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-section {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .pending-rewards-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <div class="left-section">
+            <div class="logo-section">
+                <h1>
+                    <i class="fas fa-credit-card" style="margin-right: 10px; color: #667eea;"></i>
+                    <span id="cardTitle">HDFC Credit Card</span>
+                </h1>
+            </div>
+            <div class="card-selector">
+                <label for="cardType">Card:</label>
+                    <select id="cardType" required onchange="updateCardConfiguration()">
+                    <option value="hdfc_diners_black_metal">HDFC Diners Black Metal</option>
+                    </select>
+                </div>
+            </div>
+        <div class="file-actions">
+            <button class="btn-secondary" onclick="loadWithFileAccess()" title="Load file with permission to save back">
+                <i class="fas fa-folder-open"></i>
+                <span>Open File</span>
+            </button>
+            <button class="btn-secondary" onclick="downloadTemplate()">
+                <i class="fas fa-download"></i>
+                <span>Template</span>
+            </button>
+            <button class="btn-primary" onclick="saveToExcel()">
+                <i class="fas fa-save"></i>
+                <span>Save</span>
+            </button>
+            <button class="btn-primary" onclick="downloadExcel()">
+                <i class="fas fa-download"></i>
+                <span>Download</span>
+            </button>
+                <span id="fileName" class="file-name">No file selected</span>
+            </div>
+        </div>
+
+    <div id="alertContainer"></div>
+
+    <div class="container">
+        <div class="form-section">
+            <h3 style="margin-bottom: 18px;">
+                <i class="fas fa-plus-circle" style="margin-right: 8px; color: #667eea;"></i>
+                Add Transaction
+            </h3>
+            <div class="static-alert" style="margin-bottom: 16px; display: flex; align-items: flex-start; gap: 10px; padding: 14px 18px; border-radius: 10px; background: linear-gradient(135deg, #d1ecf1 0%, #bee5eb 100%); border-left: 4px solid #17a2b8; color: #0c5460; font-weight: 500; font-size: 0.95em;">
+                <i class="fas fa-info-circle" style="margin-top: 2px; font-size: 1.1em;"></i>
+                <div>
+                    <strong>Tip:</strong> Enter total amount charged to card in Total Charged (e.g., ₹10,415). If you want to separate GST/convenience fees, enter them in Tax/Fees field (e.g., ₹415). Rewards are calculated on base amount (Total Charged - Tax/Fees).
+                </div>
+            </div>
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="transactionDate">Date *</label>
+                    <input type="date" id="transactionDate" required />
+                </div>
+                <div class="form-group">
+                    <label for="category">Category *</label>
+                    <select id="category" required onchange="updateMerchantField()">
+                        <option value="">Select Category</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="merchant">Description</label>
+                    <input type="text" id="merchant" placeholder="Enter description" />
+                </div>
+                <div class="form-group">
+                    <label for="amount">Total Charged (₹) *</label>
+                    <input type="number" id="amount" step="0.01" min="0" placeholder="0.00" required />
+                </div>
+                <div class="form-group">
+                    <label for="taxAmount">Tax/Fees (₹)</label>
+                    <input type="number" id="taxAmount" step="0.01" min="0" placeholder="0.00" />
+                </div>
+                <div class="form-group">
+                    <label for="upfrontDiscount">Upfront Discount (₹)</label>
+                    <input type="number" id="upfrontDiscount" step="0.01" min="0" placeholder="0.00" />
+                </div>
+            </div>
+            <div class="button-group">
+                <button class="btn-primary" onclick="addTransaction()">
+                    <i class="fas fa-plus"></i>
+                    <span>Add Transaction</span>
+                </button>
+                <button class="btn-secondary" onclick="clearForm()">
+                    <i class="fas fa-times"></i>
+                    <span>Clear Form</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="section-divider" style="display: none;"></div>
+
+        <div class="pending-rewards-section" id="pendingRewardsSection" style="display: none;">
+            <div class="pending-rewards-grid" id="pendingRewardsGrid">
+                <!-- Will be populated dynamically -->
+            </div>
+        </div>
+
+        <div class="transactions-table">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+                <h3>
+                    <i class="fas fa-history" style="margin-right: 8px; color: #667eea;"></i>
+                    Transaction History
+                </h3>
+                <button class="btn-danger" onclick="clearAllTransactions()">
+                    <i class="fas fa-trash-alt"></i>
+                    <span>Clear All</span>
+                </button>
+            </div>
+            <div>
+                <table id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th style="width: 60px;" title="Include/exclude this transaction from calculations">Use</th>
+                            <th title="Transaction date">Date</th>
+                            <th title="Reward category with multiplier (e.g., 5x, 10x)">Category</th>
+                            <th title="Merchant or transaction description">Description</th>
+                            <th title="Total amount charged to your card (including tax/fees)">Total Charged</th>
+                            <th title="Tax/Fees (red, subtracted) and Upfront Discount (green, added)">Tax / Discount</th>
+                            <th title="Reward calculation breakdown showing Base RP + Accelerated RP = Total RP">Reward Breakdown</th>
+                            <th title="Actual value of goods/services. Formula: (Total Charged - Tax) + Upfront Discount">True Price</th>
+                            <th title="Net price after rewards and discounts. Formula: Total Charged - Total Reward (₹) - Upfront Discount">Effective Price</th>
+                            <th title="Total savings as percentage. Formula: (Total Reward - Tax + Upfront Discount) / (Total Charged + Upfront Discount) × 100%">Effective Discount</th>
+                            <th title="Edit or delete this transaction">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Cookie Helper Functions
+        function setCookie(name, value, days = 365) {
+            if (!value || value === '') {
+                // Delete cookie by setting expiration to past
+                document.cookie = name + '=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+                console.log('Cookie deleted:', name);
+                return;
+            }
+            const expires = new Date(Date.now() + days * 864e5).toUTCString();
+            document.cookie = name + '=' + encodeURIComponent(value) + '; expires=' + expires + '; path=/; SameSite=Lax';
+            console.log('Cookie set:', name, '=', value);
+        }
+
+        function getCookie(name) {
+            const value = document.cookie.split('; ').reduce((r, v) => {
+                const parts = v.split('=');
+                return parts[0] === name ? decodeURIComponent(parts[1]) : r;
+            }, '');
+            return value;
+        }
+
+        // HDFC Credit Cards Reward Configuration System
+        const CARD_CONFIGS = {
+            'hdfc_infinia_metal': {
+                name: 'HDFC Infinia Metal',
+                baseRate: 1/30, // 5 RP per ₹150 = 1/30 ≈ 3.33%
+                blockSize: 150,
+                basePointsPerBlock: 5,
+                smartBuyDailyCap: 15000, // Combined cap across all SmartBuy categories
+                smartBuyMonthlyCap: 15000,
+                categories: {
+                    'Hotels': {
+                        multiplier: 10
+                    },
+                    'IGP.com': {
+                        multiplier: 10
+                    },
+                    'Jockey': {
+                        multiplier: 10
+                    },
+                    'PharmEasy': {
+                        multiplier: 10
+                    },
+                    'Flights': {
+                        multiplier: 5
+                    },
+                    'RedBus': {
+                        multiplier: 5
+                    },
+                    'Voucher': {
+                        multiplier: 3,
+                        dailyCap: 5000,
+                        monthlyCap: 5000
+                    },
+                    'Imagine': {
+                        multiplier: 5
+                    },
+                    'Nykaa': {
+                        multiplier: 5
+                    },
+                    'Myntra': {
+                        multiplier: 5
+                    },
+                    'MMT Holiday': {
+                        multiplier: 5
+                    },
+                    'Trains': {
+                        multiplier: 3
+                    },
+                    'Gyftr': {
+                        multiplier: 3,
+                        dailyCap: 5000,
+                        monthlyCap: 5000
+                    },
+                    'Utility': {
+                        multiplier: 1,
+                        monthlyCap: 2000
+                    },
+                    'Telecom': {
+                        multiplier: 1,
+                        monthlyCap: 2000
+                    },
+                    'Insurance': {
+                        multiplier: 1,
+                        dailyCap: 5000
+                    },
+                    'Others': {
+                        multiplier: 1
+                    }
+                }
+            },
+            'hdfc_diners_black_metal': {
+                name: 'HDFC Diners Black Metal',
+                baseRate: 1/30, // 5 RP per ₹150 = 1/30 ≈ 3.33%
+                blockSize: 150,
+                basePointsPerBlock: 5,
+                smartBuyDailyCap: 10000, // Combined cap across all SmartBuy categories
+                smartBuyMonthlyCap: 10000,
+                statementCycleCap: 75000, // Max RP per statement cycle
+                utilityCombinedMonthlyCap: 2000, // Utility + Telecom + Grocery combined
+                categories: {
+                    'Hotels': {
+                        multiplier: 10
+                    },
+                    'IGP.com': {
+                        multiplier: 10
+                    },
+                    'Jockey': {
+                        multiplier: 10
+                    },
+                    'PharmEasy': {
+                        multiplier: 10
+                    },
+                    'Flights': {
+                        multiplier: 5
+                    },
+                    'RedBus': {
+                        multiplier: 5
+                    },
+                    'Nykaa': {
+                        multiplier: 5
+                    },
+                    'Myntra': {
+                        multiplier: 5
+                    },
+                    'MMT Holiday': {
+                        multiplier: 5
+                    },
+                    'Voucher': {
+                        multiplier: 3
+                    },
+                    'Imagine': {
+                        multiplier: 3
+                    },
+                    'Trains': {
+                        multiplier: 3
+                    },
+                    'Gyftr': {
+                        multiplier: 3
+                    },
+                    'Dining (Weekend)': {
+                        multiplier: 2,
+                        dailyCap: 1000
+                    },
+                    'Utility': {
+                        multiplier: 1,
+                        combinedUtilityCap: true
+                    },
+                    'Telecom': {
+                        multiplier: 1,
+                        combinedUtilityCap: true
+                    },
+                    'Grocery': {
+                        multiplier: 1,
+                        combinedUtilityCap: true
+                    },
+                    'Insurance': {
+                        multiplier: 1,
+                        monthlyCap: 5000
+                    },
+                    'Others': {
+                        multiplier: 1
+                    }
+                }
+            },
+            'hdfc_regalia': {
+                name: 'HDFC Regalia / Regalia Gold',
+                baseRate: 0.0267, // 4 RP per ₹150 = 2.67%
+                blockSize: 150,
+                basePointsPerBlock: 4,
+                smartBuyDailyCap: 2000, // Combined cap across all SmartBuy categories
+                smartBuyMonthlyCap: 4000,
+                categories: {
+                    'Hotels': {
+                        multiplier: 10
+                    },
+                    'IGP.com': {
+                        multiplier: 10
+                    },
+                    'Jockey': {
+                        multiplier: 10
+                    },
+                    'PharmEasy': {
+                        multiplier: 10
+                    },
+                    'Flights': {
+                        multiplier: 5
+                    },
+                    'RedBus': {
+                        multiplier: 5
+                    },
+                    'Nykaa': {
+                        multiplier: 5
+                    },
+                    'Myntra': {
+                        multiplier: 5
+                    },
+                    'MMT Holiday': {
+                        multiplier: 5
+                    },
+                    'Voucher': {
+                        multiplier: 3,
+                        dailyCap: 2000,
+                        monthlyCap: 2000
+                    },
+                    'Imagine': {
+                        multiplier: 5
+                    },
+                    'Trains': {
+                        multiplier: 3
+                    },
+                    'Gyftr': {
+                        multiplier: 3,
+                        dailyCap: 2000,
+                        monthlyCap: 4000
+                    },
+                    'Utility': {
+                        multiplier: 1,
+                        monthlyCap: 2000
+                    },
+                    'Telecom': {
+                        multiplier: 1,
+                        monthlyCap: 2000
+                    },
+                    'Insurance': {
+                        multiplier: 1,
+                        dailyCap: 5000
+                    },
+                    'Others': {
+                        multiplier: 1
+                    }
+                }
+            },
+            'hdfc_diners_privilege': {
+                name: 'HDFC Diners Privilege',
+                baseRate: 0.0267, // 4 RP per ₹150 = 2.67%
+                blockSize: 150,
+                basePointsPerBlock: 4,
+                smartBuyDailyCap: 2000, // Combined cap across all SmartBuy categories
+                smartBuyMonthlyCap: 4000,
+                categories: {
+                    'Hotels': {
+                        multiplier: 10
+                    },
+                    'IGP.com': {
+                        multiplier: 10
+                    },
+                    'Jockey': {
+                        multiplier: 10
+                    },
+                    'PharmEasy': {
+                        multiplier: 10
+                    },
+                    'Flights': {
+                        multiplier: 5
+                    },
+                    'RedBus': {
+                        multiplier: 5
+                    },
+                    'Nykaa': {
+                        multiplier: 5
+                    },
+                    'Myntra': {
+                        multiplier: 5
+                    },
+                    'MMT Holiday': {
+                        multiplier: 5
+                    },
+                    'Voucher': {
+                        multiplier: 3,
+                        dailyCap: 2000,
+                        monthlyCap: 2000
+                    },
+                    'Imagine': {
+                        multiplier: 5
+                    },
+                    'Trains': {
+                        multiplier: 3
+                    },
+                    'Gyftr': {
+                        multiplier: 3,
+                        dailyCap: 2000,
+                        monthlyCap: 2000
+                    },
+                    'Utility': {
+                        multiplier: 1,
+                        monthlyCap: 2000
+                    },
+                    'Telecom': {
+                        multiplier: 1,
+                        monthlyCap: 2000
+                    },
+                    'Insurance': {
+                        multiplier: 1,
+                        dailyCap: 5000
+                    },
+                    'Others': {
+                        multiplier: 1
+                    }
+                }
+            }
+        };
+
+        // Default descriptions for each category
+        const DEFAULT_MERCHANTS = {
+            'Hotels': 'Hotel Booking',
+            'Flights': 'Flight Booking',
+            'Voucher': 'Amazon Pay/Gift Voucher',
+            'Gyftr': 'Gyftr Gift Voucher',
+            'Apple': 'Apple Store',
+            'Utilities': 'Utility Bill Payment',
+            'Telecom': 'Mobile Recharge',
+            'Grocery': 'Grocery Store',
+            'Insurance': 'Insurance Premium',
+            'Rent': 'Rent Payment',
+            'Education': 'Education Fee',
+            'Fuel': 'Petrol/Diesel',
+            'Government': 'Government Payment',
+            'Wallet': 'Wallet Load',
+            'Others': 'General Purchase'
+        };
+
+        let currentCardType = '';
+        let REWARD_CONFIG = {};
+        let transactions = [];
+        let dailyAcceleratedRewards = {}; // Track daily accelerated rewards by category
+        let monthlyAcceleratedRewards = {}; // Track monthly accelerated rewards by category
+        let dailyBaseRewards = {}; // Track daily base rewards by category
+        let monthlyBaseRewards = {}; // Track monthly base rewards by category
+
+        // Helper function to get current card configuration
+        function getCurrentCardConfig() {
+            return CARD_CONFIGS[currentCardType] || CARD_CONFIGS['hdfc_diners_black_metal'];
+        }
+        let loadedFileName = ''; // Track the loaded file name for overwriting
+        let fileHandle = null; // File System Access API handle for true overwriting
+
+        // Toggle tax field visibility
+        function toggleTaxField() {
+            const includesTax = document.getElementById('includesTax').checked;
+            const taxPercentGroup = document.getElementById('taxPercentGroup');
+            taxPercentGroup.style.display = includesTax ? 'block' : 'none';
+        }
+
+        // Update description field with default value when category changes
+        function updateMerchantField() {
+            const categorySelect = document.getElementById('category');
+            const merchantInput = document.getElementById('merchant');
+            
+            if (!categorySelect || !merchantInput) return;
+            
+            const selectedCategory = categorySelect.value;
+            
+            // Only update if the description field is empty
+            if (selectedCategory && DEFAULT_MERCHANTS[selectedCategory] && !merchantInput.value.trim()) {
+                merchantInput.value = DEFAULT_MERCHANTS[selectedCategory];
+            }
+        }
+
+        // Load saved card type from cookie on page load
+        function loadSavedCardType() {
+            const savedCardType = getCookie('selectedCardType');
+            console.log('Loading saved card type from cookie:', savedCardType);
+            const defaultType = 'hdfc_diners_black_metal';
+            const toUse = (savedCardType && CARD_CONFIGS[savedCardType]) ? savedCardType : defaultType;
+            const cardSelect = document.getElementById('cardType');
+            if (cardSelect) {
+                cardSelect.value = toUse;
+                updateCardConfiguration();
+                console.log('Card type loaded successfully:', toUse);
+            }
+        }
+
+        // Update card configuration when card type changes
+        function updateCardConfiguration() {
+            const cardType = document.getElementById('cardType').value;
+            
+            if (!cardType) {
+                document.getElementById('category').innerHTML = '<option value="">Select Category</option>';
+                document.getElementById('cardTitle').textContent = 'HDFC Credit Card';
+                currentCardType = '';
+                REWARD_CONFIG = {};
+                setCookie('selectedCardType', ''); // Clear cookie
+                return;
+            }
+
+            currentCardType = cardType;
+            const cardConfig = CARD_CONFIGS[cardType];
+            REWARD_CONFIG = cardConfig.categories;
+
+            // Save to cookie
+            setCookie('selectedCardType', cardType);
+
+            // Update title
+            document.getElementById('cardTitle').textContent = cardConfig.name;
+
+            // Update category dropdown
+            const categorySelect = document.getElementById('category');
+            categorySelect.innerHTML = '<option value="">Select Category</option>';
+            
+            // 'Voucher' and 'Gyftr' are the same - show only as 'Gyftr'
+            const keys = Object.keys(REWARD_CONFIG);
+            const seenGyftr = new Set();
+            keys.forEach(category => {
+                if (category === 'Voucher' || category === 'Gyftr') {
+                    if (!seenGyftr.has('Gyftr')) {
+                        const cfg = REWARD_CONFIG['Voucher'] || REWARD_CONFIG['Gyftr'];
+                        const option = document.createElement('option');
+                        option.value = 'Gyftr';
+                        option.textContent = `Gyftr (${cfg.multiplier}x)`;
+                        categorySelect.appendChild(option);
+                        seenGyftr.add('Gyftr');
+                    }
+                } else {
+                    const config = REWARD_CONFIG[category];
+                    const option = document.createElement('option');
+                    option.value = category;
+                    option.textContent = `${category} (${config.multiplier}x)`;
+                    categorySelect.appendChild(option);
+                }
+            });
+
+            // If there are existing transactions, recalculate with new card
+            if (transactions.length > 0) {
+                if (confirm('Changing card type will recalculate all rewards. Continue?')) {
+                    recalculateAllRewards();
+                    renderTransactions();
+                    showAlert('Rewards recalculated for ' + cardConfig.name, 'success');
+                } else {
+                    // Revert selection
+                    document.getElementById('cardType').value = '';
+                    updateCardConfiguration();
+                }
+            } else {
+                // No transactions yet, just update pending rewards
+                updatePendingRewards();
+            }
+        }
+
+        // Load file using File System Access API (allows true overwriting)
+        async function loadWithFileAccess() {
+            if (!window.showOpenFilePicker) {
+                showAlert('Your browser doesn\'t support file access. The file will download to your Downloads folder instead.', 'info');
+                return;
+            }
+
+            try {
+                const [handle] = await window.showOpenFilePicker({
+                    types: [{
+                        description: 'Excel Files',
+                        accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx', '.xls'] }
+                    }],
+                    multiple: false
+                });
+
+                // Request write permission immediately
+                const permission = await handle.queryPermission({ mode: 'readwrite' });
+                if (permission !== 'granted') {
+                    const requestPermission = await handle.requestPermission({ mode: 'readwrite' });
+                    if (requestPermission !== 'granted') {
+                        showAlert('Write permission denied. File will be read-only.', 'warning');
+                    }
+                }
+
+                fileHandle = handle; // Store for later saving
+                const file = await handle.getFile();
+                loadedFileName = file.name;
+                document.getElementById('fileName').textContent = file.name;
+                console.log('✅ File loaded with write permission:', file.name);
+                loadExcelFile(file);
+            } catch (err) {
+                if (err.name === 'AbortError') {
+                    console.log('File selection cancelled');
+                } else {
+                    console.error('Error opening file:', err);
+                    showAlert('Error opening file: ' + err.message, 'error');
+                }
+            }
+        }
+
+        function loadExcelFile(file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    // Prefer template's 'Transactions' sheet if present
+                    const txSheet = workbook.Sheets['Transactions'] || workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(txSheet);
+
+                    if (!currentCardType) {
+                        showAlert('Please select a card type before importing transactions.', 'error');
+                        document.getElementById('xlsxFileInput').value = '';
+                        document.getElementById('fileName').textContent = 'No file selected';
+                        return;
+                    }
+
+                    if (jsonData.length > 0) {
+                        transactions = [];
+                        let importedCount = 0;
+                        let skippedCount = 0;
+
+                        jsonData.forEach((row, index) => {
+                            if (row.Date && row.Category && row.Amount) {
+                                const rawCategory = String(row.Category || 'Others');
+                                const category = normalizeCategorySelection(rawCategory);
+                                const baseAmount = parseFloat(row.Amount) || 0; // Amount is the base
+                                const taxVal = (row.Tax !== undefined ? row.Tax : row['Tax Amount']);
+                                const taxAmount = parseFloat(taxVal) || 0;
+                                const upfrontDiscountVal = (row['Upfront Discount'] !== undefined ? row['Upfront Discount'] : 0);
+                                const upfrontDiscount = parseFloat(upfrontDiscountVal) || 0;
+                                const totalCharged = baseAmount + taxAmount; // Total = Base + Tax
+                                
+                                // Read "Use" column - default to true if not present
+                                const useValue = row.Use !== undefined ? String(row.Use).toLowerCase() : 'yes';
+                                const included = useValue !== 'no' && useValue !== 'false' && useValue !== '0';
+                                
+                                // Read description - use Excel column if present, otherwise use default for category
+                                const merchant = row.Description || row.Merchant || DEFAULT_MERCHANTS[rawCategory] || rawCategory;
+
+                                const transaction = {
+                                    date: parseExcelDate(row.Date),
+                                    merchant: merchant,
+                                    category,
+                                    amount: totalCharged, // Total charged to card
+                                    taxAmount,
+                                    upfrontDiscount,
+                                    baseAmount, // Base for reward calculation
+                                    cardType: currentCardType,
+                                    included: included // Load checkbox state from Excel
+                                };
+                                
+                                // Validate transaction before adding - load all transactions regardless of category match
+                                if (transaction.amount > 0 && transaction.date) {
+                                    // Load transaction even if category doesn't exist in current config
+                                    // User will manually match/edit categories
+                                    transactions.push(transaction);
+                                    importedCount++;
+                                } else {
+                                    console.warn(`Row ${index + 2}: Invalid amount or date. Skipped.`);
+                                    skippedCount++;
+                                }
+                            } else {
+                                skippedCount++;
+                            }
+                        });
+                        
+                        recalculateAllRewards();
+                        renderTransactions();
+                        
+                        let message = `Excel file loaded! ${importedCount} transactions imported.`;
+                        if (skippedCount > 0) {
+                            message += ` ${skippedCount} rows skipped (invalid data).`;
+                        }
+                        showAlert(message, importedCount > 0 ? 'success' : 'error');
+                    } else {
+                        showAlert('No data found in the Excel file.', 'error');
+                    }
+                } catch (error) {
+                    console.error('Excel import error:', error);
+                    showAlert('Error loading Excel file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        function parseExcelDate(excelDate) {
+            try {
+                // If already a string in correct format
+                if (typeof excelDate === 'string') {
+                    // Validate date format YYYY-MM-DD
+                    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+                    if (dateRegex.test(excelDate)) {
+                        return excelDate;
+                    }
+                    // Try to parse other formats
+                    const parsedDate = new Date(excelDate);
+                    if (!isNaN(parsedDate.getTime())) {
+                        return parsedDate.toISOString().split('T')[0];
+                    }
+                }
+                
+                // Excel numeric date (days since 1900-01-01)
+                if (typeof excelDate === 'number') {
+                    const date = new Date((excelDate - 25569) * 86400 * 1000);
+                    if (!isNaN(date.getTime())) {
+                        return date.toISOString().split('T')[0];
+                    }
+                }
+                
+                // If Date object
+                if (excelDate instanceof Date && !isNaN(excelDate.getTime())) {
+                    return excelDate.toISOString().split('T')[0];
+                }
+                
+                // Default fallback
+                console.error('Unable to parse date:', excelDate);
+                return new Date().toISOString().split('T')[0];
+            } catch (error) {
+                console.error('Date parsing error:', error, excelDate);
+                return new Date().toISOString().split('T')[0];
+            }
+        }
+
+        function normalizeCategorySelection(selectedCategory) {
+            // 'Gyftr' maps to either 'Voucher' or 'Gyftr' in config
+            if (selectedCategory === 'Gyftr') {
+                if (REWARD_CONFIG['Voucher']) return 'Voucher';
+                if (REWARD_CONFIG['Gyftr']) return 'Gyftr';
+            }
+            return selectedCategory;
+        }
+
+        function getDisplayCategories() {
+            const keys = REWARD_CONFIG ? Object.keys(REWARD_CONFIG) : [];
+            const seenGyftr = new Set();
+            const out = [];
+            keys.forEach(k => {
+                if (k === 'Voucher' || k === 'Gyftr') {
+                    if (!seenGyftr.has('Gyftr')) {
+                        out.push('Gyftr');
+                        seenGyftr.add('Gyftr');
+                    }
+                } else {
+                    out.push(k);
+                }
+            });
+            if (out.length === 0) {
+                return ['Gyftr', 'Hotels', 'Flights'];
+            }
+            return out;
+        }
+
+        function addTransaction() {
+            console.log('🔵 addTransaction() called');
+            // Ensure card type/config is initialized (fallback to selected/default if missing)
+            if (!currentCardType) {
+                const select = document.getElementById('cardType');
+                const selectedType = (select && select.value) ? select.value : 'hdfc_diners_black_metal';
+                if (CARD_CONFIGS[selectedType]) {
+                    currentCardType = selectedType;
+                    REWARD_CONFIG = CARD_CONFIGS[selectedType].categories;
+                    console.log('🔵 Auto-initialized card type:', currentCardType);
+                }
+            }
+
+            // Validate card selection after attempting auto-init
+            if (!currentCardType) {
+                showAlert('Please select a card type first.', 'error');
+                return;
+            }
+
+            const date = document.getElementById('transactionDate').value;
+            const rawCategory = document.getElementById('category').value;
+            let category = normalizeCategorySelection(rawCategory);
+            const merchant = document.getElementById('merchant').value.trim() || DEFAULT_MERCHANTS[rawCategory] || rawCategory;
+            const amount = parseFloat(document.getElementById('amount').value);
+            const taxAmount = parseFloat(document.getElementById('taxAmount').value) || 0;
+            const upfrontDiscount = parseFloat(document.getElementById('upfrontDiscount').value) || 0;
+
+            console.log('🔵 Form values:', { date, rawCategory, category, merchant, amount, taxAmount, upfrontDiscount });
+
+            // Robust validation
+            if (!date) {
+                showAlert('Please select a transaction date.', 'error');
+                return;
+            }
+
+            if (!category) {
+                showAlert('Please select a category.', 'error');
+                return;
+            }
+
+            if (isNaN(amount) || amount <= 0) {
+                showAlert('Please enter a valid amount greater than 0.', 'error');
+                return;
+            }
+
+            if (taxAmount < 0) {
+                showAlert('Tax cannot be negative.', 'error');
+                return;
+            }
+
+            if (upfrontDiscount < 0) {
+                showAlert('Upfront discount cannot be negative.', 'error');
+                return;
+            }
+
+            // Validate category exists in current card config; apply fallbacks for combined or others
+            if (!REWARD_CONFIG[category]) {
+                const fallback = (rawCategory.includes('Instant') || rawCategory.includes('Gyftr')) ? 'Voucher' : 'Others';
+                if (REWARD_CONFIG[fallback]) {
+                    category = fallback;
+                } else {
+                    showAlert('Invalid category for selected card.', 'error');
+                    return;
+                }
+            }
+
+            // Amount field is now TOTAL CHARGED (what appears on card statement)
+            // Tax is SUBTRACTED to get base amount for reward calculation
+            const totalCharged = parseFloat(amount);
+            const baseAmount = totalCharged - (parseFloat(taxAmount) || 0);
+            const transaction = {
+                date,
+                merchant: merchant, // User-entered or default merchant name
+                category,
+                amount: totalCharged, // Total amount charged to card
+                taxAmount: parseFloat(taxAmount) || 0,
+                upfrontDiscount: parseFloat(upfrontDiscount) || 0,
+                baseAmount,
+                cardType: currentCardType,
+                included: true
+            };
+
+            console.log('🔵 Adding transaction:', transaction);
+            console.log('🔵 Reward calculation:', {
+                baseAmount: baseAmount,
+                taxAmount: taxAmount,
+                totalCharged: totalCharged,
+                expectedBlocks: Math.floor((totalCharged - (parseFloat(taxAmount) || 0)) / 150),
+                expectedBaseRP: Math.floor(baseAmount / 150) * 5
+            });
+            transactions.push(transaction);
+            console.log('🔵 Transactions array length:', transactions.length);
+            
+            console.log('🔵 Calling recalculateAllRewards()...');
+            recalculateAllRewards();
+            
+            console.log('🔵 Calling renderTransactions()...');
+            renderTransactions();
+            
+            console.log('🔵 Transaction added successfully!');
+            showAlert('Transaction added successfully!', 'success');
+        }
+
+        function clearForm() {
+            document.getElementById('category').value = '';
+            document.getElementById('merchant').value = '';
+            document.getElementById('amount').value = '';
+            const taxInput = document.getElementById('taxAmount');
+            if (taxInput) taxInput.value = '';
+            const upfrontDiscountInput = document.getElementById('upfrontDiscount');
+            if (upfrontDiscountInput) upfrontDiscountInput.value = '';
+            document.getElementById('transactionDate').valueAsDate = new Date();
+        }
+
+        function deleteTransaction(index) {
+            if (confirm('Are you sure you want to delete this transaction?')) {
+                transactions.splice(index, 1);
+                recalculateAllRewards();
+                renderTransactions();
+                showAlert('Transaction deleted successfully.', 'info');
+            }
+        }
+
+        function clearAllTransactions() {
+            if (confirm('Are you sure you want to delete ALL transactions? This cannot be undone.')) {
+                transactions = [];
+                recalculateAllRewards();
+                renderTransactions();
+                showAlert('All transactions cleared.', 'info');
+            }
+        }
+
+        function toggleTransactionIncluded(index, included) {
+            if (transactions[index]) {
+                transactions[index].included = !!included;
+                recalculateAllRewards();
+                renderTransactions();
+            }
+        }
+
+        function recalculateAllRewards() {
+            console.log('🟡 recalculateAllRewards() called');
+            // Robust validation before calculation
+            if (!currentCardType || !REWARD_CONFIG || Object.keys(REWARD_CONFIG).length === 0) {
+                console.warn('🔴 No card type selected or invalid config');
+                updateStats();
+                return;
+            }
+            console.log('🟡 Card type:', currentCardType, 'Transactions to process:', transactions.length);
+
+            // Reset tracking objects
+            dailyAcceleratedRewards = {};
+            monthlyAcceleratedRewards = {};
+            dailyBaseRewards = {};
+            monthlyBaseRewards = {};
+
+            // Sort transactions by date to process chronologically (critical for cap calculations)
+            transactions.sort((a, b) => {
+                const dateA = new Date(a.date);
+                const dateB = new Date(b.date);
+                return dateA - dateB;
+            });
+
+            // Calculate rewards for each transaction with robust error handling
+            transactions.forEach((transaction, index) => {
+                try {
+                    // Validate transaction has required fields
+                    if (!transaction.category || !transaction.amount || !transaction.date) {
+                        console.error('Invalid transaction at index', index, transaction);
+                        transaction.baseReward = 0;
+                        transaction.acceleratedReward = 0;
+                        transaction.totalReward = 0;
+                        transaction.capStatus = '❌ Invalid';
+                        return;
+                    }
+
+                    // Skip excluded transactions from all calculations
+                    if (transaction.included === false) {
+                        transaction.baseReward = 0;
+                        transaction.acceleratedReward = 0;
+                        transaction.totalReward = 0;
+                        transaction.capStatus = '⏸ Excluded';
+                        return;
+                    }
+
+                    const config = REWARD_CONFIG[transaction.category];
+                    
+                    // Validate category exists in current card config
+                    if (!config) {
+                        console.warn('Category not found in config:', transaction.category);
+                        transaction.baseReward = 0;
+                        transaction.acceleratedReward = 0;
+                        transaction.totalReward = 0;
+                        transaction.capStatus = '❌ Invalid Category';
+                        return;
+                    }
+
+                    const date = transaction.date;
+                    const month = date.substring(0, 7); // YYYY-MM format
+                    const category = transaction.category;
+                    // baseAmount is calculated as: Total Charged - Tax
+                    const baseAmount = (parseFloat(transaction.amount) || 0) - (parseFloat(transaction.taxAmount) || 0);
+                    const amount = baseAmount;
+
+                    // Validate amount
+                    if (isNaN(amount) || amount <= 0) {
+                        console.error('Invalid amount:', transaction.amount);
+                        transaction.baseReward = 0;
+                        transaction.acceleratedReward = 0;
+                        transaction.totalReward = 0;
+                        transaction.capStatus = '❌ Invalid Amount';
+                        return;
+                    }
+
+                    // Get card's block accrual parameters
+                    const cardConfig = CARD_CONFIGS[currentCardType];
+                    const blockSize = cardConfig.blockSize || 150;
+                    const pointsPerBlock = cardConfig.basePointsPerBlock || Math.round(blockSize * cardConfig.baseRate);
+
+                    // Calculate base reward in whole points (per-transaction block logic)
+                    const blocksEarned = Math.floor(amount / blockSize);
+                    let baseReward = blocksEarned * pointsPerBlock;
+                    
+                    // Check if this is a utility category
+                    const isCombinedUtility = category === 'Utility' || category === 'Telecom' || category === 'Grocery';
+                    
+                    // Cap utility base rewards at 2000 RP per month
+                    if (isCombinedUtility) {
+                        if (!monthlyBaseRewards[month]) {
+                            monthlyBaseRewards[month] = { combinedUtility: 0 };
+                        }
+                        const utilityBaseUsed = monthlyBaseRewards[month].combinedUtility || 0;
+                        const utilityBaseCap = 2000;
+                        const utilityBaseRemaining = Math.max(0, utilityBaseCap - utilityBaseUsed);
+                        
+                        // Cap the base reward for this transaction
+                        baseReward = Math.min(baseReward, utilityBaseRemaining);
+                        
+                        // Update monthly utility base tracking
+                        monthlyBaseRewards[month].combinedUtility = utilityBaseUsed + baseReward;
+                    }
+
+                    // Calculate potential accelerated reward using multiplier (whole points)
+                    const multiplier = config.multiplier || 1;
+                    const potentialAcceleratedReward = baseReward * Math.max(0, (multiplier - 1));
+
+                    // Check if this is a SmartBuy category (all SmartBuy categories share combined caps)
+                    const smartBuyCategories = ['Hotels', 'IGP.com', 'Jockey', 'PharmEasy', 'Flights', 'RedBus', 'Voucher', 'Imagine', 'Nykaa', 'Myntra', 'MMT Holiday', 'Trains', 'Gyftr'];
+                    const isSmartBuy = smartBuyCategories.includes(category);
+                    const isInsurance = category === 'Insurance';
+                    const isDining = category === 'Dining (Weekend)';
+                    
+                    // Initialize tracking structures if needed
+                    if (!dailyAcceleratedRewards[date]) {
+                        dailyAcceleratedRewards[date] = { smartbuy: 0, dining: 0 };
+                    }
+                    if (!dailyAcceleratedRewards[date].smartbuy) {
+                        dailyAcceleratedRewards[date].smartbuy = 0;
+                    }
+                    if (!dailyAcceleratedRewards[date].dining) {
+                        dailyAcceleratedRewards[date].dining = 0;
+                    }
+                    if (!monthlyAcceleratedRewards[month]) {
+                        monthlyAcceleratedRewards[month] = { smartbuy: 0, combinedUtility: 0, insurance: 0 };
+                    }
+                    if (!monthlyAcceleratedRewards[month].smartbuy) {
+                        monthlyAcceleratedRewards[month].smartbuy = 0;
+                    }
+                    if (!monthlyAcceleratedRewards[month].combinedUtility) {
+                        monthlyAcceleratedRewards[month].combinedUtility = 0;
+                    }
+                    if (!monthlyAcceleratedRewards[month].insurance) {
+                        monthlyAcceleratedRewards[month].insurance = 0;
+                    }
+
+                    // Check caps - SmartBuy categories have combined caps
+                    let dailyRemaining = Infinity;
+                    let monthlyRemaining = Infinity;
+                    let actualAcceleratedReward = potentialAcceleratedReward;
+                    
+                    if (isSmartBuy) {
+                        const dailyUsed = dailyAcceleratedRewards[date].smartbuy || 0;
+                        const monthlyUsed = monthlyAcceleratedRewards[month].smartbuy || 0;
+                        
+                        dailyRemaining = cardConfig.smartBuyDailyCap ? Math.max(0, cardConfig.smartBuyDailyCap - dailyUsed) : Infinity;
+                        monthlyRemaining = cardConfig.smartBuyMonthlyCap ? Math.max(0, cardConfig.smartBuyMonthlyCap - monthlyUsed) : Infinity;
+
+                        // Apply the minimum of potential reward and remaining caps
+                        if (dailyRemaining !== Infinity) {
+                            actualAcceleratedReward = Math.min(actualAcceleratedReward, dailyRemaining);
+                        }
+                        if (monthlyRemaining !== Infinity) {
+                            actualAcceleratedReward = Math.min(actualAcceleratedReward, monthlyRemaining);
+                        }
+                        
+                        actualAcceleratedReward = Math.max(0, Math.floor(actualAcceleratedReward));
+
+                        // Update combined SmartBuy tracking
+                        dailyAcceleratedRewards[date].smartbuy = Math.max(0, Math.floor(dailyUsed + actualAcceleratedReward));
+                        monthlyAcceleratedRewards[month].smartbuy = Math.max(0, Math.floor(monthlyUsed + actualAcceleratedReward));
+                    } else if (isCombinedUtility) {
+                        // Utility + Telecom + Grocery - combined monthly cap
+                        const monthlyUsed = monthlyAcceleratedRewards[month].combinedUtility || 0;
+                        monthlyRemaining = cardConfig.utilityCombinedMonthlyCap ? Math.max(0, cardConfig.utilityCombinedMonthlyCap - monthlyUsed) : Infinity;
+                        
+                        if (monthlyRemaining !== Infinity) {
+                            actualAcceleratedReward = Math.min(actualAcceleratedReward, monthlyRemaining);
+                        }
+                        
+                        actualAcceleratedReward = Math.max(0, Math.floor(actualAcceleratedReward));
+                        monthlyAcceleratedRewards[month].combinedUtility = Math.max(0, Math.floor(monthlyUsed + actualAcceleratedReward));
+                    } else if (isInsurance) {
+                        // Insurance - monthly cap only
+                        const monthlyUsed = monthlyAcceleratedRewards[month].insurance || 0;
+                        monthlyRemaining = config.monthlyCap ? Math.max(0, config.monthlyCap - monthlyUsed) : Infinity;
+                        
+                        if (monthlyRemaining !== Infinity) {
+                            actualAcceleratedReward = Math.min(actualAcceleratedReward, monthlyRemaining);
+                        }
+                        
+                        actualAcceleratedReward = Math.max(0, Math.floor(actualAcceleratedReward));
+                        monthlyAcceleratedRewards[month].insurance = Math.max(0, Math.floor(monthlyUsed + actualAcceleratedReward));
+                    } else if (isDining) {
+                        // Dining (Weekend) - daily cap only
+                        const dailyUsed = dailyAcceleratedRewards[date].dining || 0;
+                        dailyRemaining = config.dailyCap ? Math.max(0, config.dailyCap - dailyUsed) : Infinity;
+                        
+                        if (dailyRemaining !== Infinity) {
+                            actualAcceleratedReward = Math.min(actualAcceleratedReward, dailyRemaining);
+                        }
+                        
+                        actualAcceleratedReward = Math.max(0, Math.floor(actualAcceleratedReward));
+                        dailyAcceleratedRewards[date].dining = Math.max(0, Math.floor(dailyUsed + actualAcceleratedReward));
+                    } else {
+                        // Other categories (Others) have no cap
+                        actualAcceleratedReward = Math.max(0, Math.floor(actualAcceleratedReward));
+                    }
+
+                    // Store calculated rewards in transaction with precision
+                    transaction.baseReward = baseReward;
+                    transaction.acceleratedReward = potentialAcceleratedReward; // Show potential (uncapped) in table
+                    transaction.actualAcceleratedReward = actualAcceleratedReward; // Actual capped value for totals
+                    transaction.missedRP = Math.max(0, potentialAcceleratedReward - actualAcceleratedReward); // RP lost due to caps
+                    transaction.totalReward = baseReward + potentialAcceleratedReward; // Show uncapped total
+                    transaction.actualTotalReward = baseReward + actualAcceleratedReward; // Actual capped total for stats
+                    transaction.capStatus = getCappingStatus(
+                        potentialAcceleratedReward,
+                        actualAcceleratedReward,
+                        dailyRemaining,
+                        monthlyRemaining,
+                        isSmartBuy || isCombinedUtility || isInsurance || isDining
+                    );
+                    console.log('🟡 Transaction', index, 'calculated:', {
+                        category: transaction.category,
+                        amount,
+                        blocks: blocksEarned,
+                        baseReward,
+                        acceleratedReward: actualAcceleratedReward,
+                        missedRP: transaction.missedRP,
+                        totalReward: transaction.totalReward
+                    });
+                } catch (error) {
+                    console.error('🔴 Error calculating rewards for transaction:', transaction, error);
+                    transaction.baseReward = 0;
+                    transaction.acceleratedReward = 0;
+                    transaction.totalReward = 0;
+                    transaction.capStatus = '❌ Error';
+                }
+            });
+
+            console.log('🟡 Calling updateStats()...');
+            updateStats();
+            console.log('🟡 Calling updatePendingRewards()...');
+            updatePendingRewards();
+            console.log('🟡 recalculateAllRewards() complete');
+        }
+
+        function getCappingStatus(potential, actual, dailyRemaining, monthlyRemaining, isSmartBuy) {
+            // Handle infinite caps (no capping) - for non-SmartBuy categories
+            if (!isSmartBuy || (dailyRemaining === Infinity && monthlyRemaining === Infinity)) {
+                return '✅ No Cap';
+            }
+
+            // Round to avoid floating point precision issues
+            const potentialRounded = Math.round(potential * 100) / 100;
+            const actualRounded = Math.round(actual * 100) / 100;
+
+            if (actualRounded >= potentialRounded - 0.01) { // Allow 1 paisa tolerance
+                return '✅ Full';
+            } else if (dailyRemaining !== Infinity && dailyRemaining <= 0.01) {
+                return '🔴 Daily Cap';
+            } else if (monthlyRemaining !== Infinity && monthlyRemaining <= 0.01) {
+                return '🟠 Monthly Cap';
+            } else if (actualRounded < potentialRounded) {
+                return '🟡 Partial';
+            } else {
+                return '✅ Full';
+            }
+        }
+
+        function renderTransactions() {
+            console.log('🟢 renderTransactions() called, transactions.length:', transactions.length);
+            try {
+                const tbody = document.getElementById('transactionsBody');
+                console.log('🟢 tbody element:', tbody);
+                if (!tbody) { 
+                    console.error('🔴 tbody element not found!');
+                    return; 
+                }
+                tbody.innerHTML = '';
+
+                if (transactions.length === 0) {
+                    console.log('🟢 No transactions, showing empty message');
+                    tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; color: #999;">No transactions yet. Add your first transaction above.</td></tr>';
+                    return;
+                }
+
+                console.log('🟢 Rendering', transactions.length, 'transactions');
+                // Display in reverse chronological order (newest first)
+                const sortedTransactions = [...transactions].reverse();
+
+                // Track months for color coding
+                let lastMonthYear = null;
+                let monthColorIndex = 0;
+                const monthColors = 6; // Number of color variations
+
+                sortedTransactions.forEach((transaction, reverseIndex) => {
+                    const row = document.createElement('tr');
+                    try {
+                        const actualIndex = transactions.length - 1 - reverseIndex;
+                        console.log('🟢 Rendering transaction', actualIndex, ':', transaction);
+                        
+                        // Apply month color coding
+                        if (transaction.date) {
+                            const transactionDate = new Date(transaction.date);
+                            const monthYear = `${transactionDate.getFullYear()}-${transactionDate.getMonth()}`;
+                            
+                            if (lastMonthYear !== null && lastMonthYear !== monthYear) {
+                                monthColorIndex = (monthColorIndex + 1) % monthColors;
+                            }
+                            lastMonthYear = monthYear;
+                            row.classList.add(`month-color-${monthColorIndex}`);
+                        }
+                        
+                        if (transaction.included === false) {
+                            row.classList.add('excluded');
+                        }
+                        
+                        // Robust rendering with fallbacks
+                        const date = transaction.date ? formatDate(transaction.date) : 'N/A';
+                        const categoryDisplayRaw = (transaction.category === 'Voucher' || transaction.category === 'Gyftr') ? 'Gyftr' : (transaction.category || 'N/A');
+                        // Get multiplier for category display
+                        let categoryWithMultiplier = categoryDisplayRaw;
+                        if (transaction.category && REWARD_CONFIG && REWARD_CONFIG[transaction.category]) {
+                            const multiplier = REWARD_CONFIG[transaction.category].multiplier;
+                            categoryWithMultiplier = `${categoryDisplayRaw} (${multiplier}x)`;
+                        }
+                        const category = escapeHtml(categoryWithMultiplier);
+                        const merchant = escapeHtml(transaction.merchant || 'N/A');
+                        const amount = isNaN(transaction.amount) ? '0' : Math.round(transaction.amount);
+                        // Rewards are now whole numbers (RP), display without decimals
+                        const baseReward = isNaN(transaction.baseReward) ? '0' : String(Math.floor(transaction.baseReward));
+                        const acceleratedReward = isNaN(transaction.acceleratedReward) ? '0' : String(Math.floor(transaction.acceleratedReward));
+                        const missedRP = isNaN(transaction.missedRP) ? '0' : String(Math.floor(transaction.missedRP));
+                        const totalReward = isNaN(transaction.totalReward) ? '0' : String(Math.floor(transaction.totalReward));
+                        const taxAmount = transaction.taxAmount || 0;
+                        const taxDisplay = taxAmount > 0 ? `₹${Math.round(taxAmount)}` : '-';
+                        
+                        // Calculate baseAmount dynamically
+                        const baseAmount = (parseFloat(transaction.amount) || 0) - (parseFloat(transaction.taxAmount) || 0);
+                        
+                        console.log('🟢 Computing effective display for:', { totalReward, baseAmount: baseAmount, taxAmount: transaction.taxAmount, category: transaction.category });
+                        const eff = computeEffectiveDisplay(transaction.totalReward, baseAmount, transaction.taxAmount, transaction.category);
+                        console.log('🟢 Effective display:', eff);
+                        
+                        const baseAmtDisplay = baseAmount ? '₹' + Math.round(baseAmount) : '-';
+                        const missedRPDisplay = missedRP === '0' ? '-' : `<span style="color: #dc3545;">${missedRP} RP</span>`;
+                        
+                        // Display upfront discount
+                        const upfrontDiscount = transaction.upfrontDiscount || 0;
+                        const upfrontDiscountDisplay = upfrontDiscount > 0 ? `₹${Math.round(upfrontDiscount)}` : '-';
+                        
+                        // Calculate true price (Base Amount + Upfront Discount)
+                        const truePrice = baseAmount + upfrontDiscount;
+                        const truePriceDisplay = '₹' + truePrice;
+                        
+                        // Calculate effective price (Total Charged - Total Reward in ₹ - Upfront Discount)
+                        const totalChargedAmount = parseFloat(transaction.amount) || 0;
+                        const totalRewardRupees = parseFloat(transaction.totalReward) || 0;
+                        const effectivePrice = totalChargedAmount - totalRewardRupees - upfrontDiscount;
+                        const effectivePriceDisplay = effectivePrice > 0 ? '₹' + effectivePrice : '₹0';
+                        
+                        // Calculate effective discount: (total rewards - tax + upfront discount) / (base amount + upfront discount)
+                        const totalDiscount = totalRewardRupees - parseFloat(taxAmount) + upfrontDiscount;
+                        const denominator = totalChargedAmount + upfrontDiscount;
+                        const effectiveDiscountPct = denominator > 0 ? (totalDiscount / denominator * 100) : 0;
+                        const effectiveDiscountDisplay = `₹${totalDiscount} (${effectiveDiscountPct.toFixed(2)}%)`;
+                        
+                        // Store the transaction index as a data attribute for editing
+                        row.setAttribute('data-index', actualIndex);
+                        
+                        // Combine Tax/Fees and Upfront Discount in one cell
+                        let taxDiscountDisplay = '';
+                        if (taxAmount > 0 && upfrontDiscount > 0) {
+                            taxDiscountDisplay = `<span style="color: #dc3545;">-₹${Math.round(taxAmount)}</span> / <span style="color: #28a745;">+₹${Math.round(upfrontDiscount)}</span>`;
+                        } else if (taxAmount > 0) {
+                            taxDiscountDisplay = `<span style="color: #dc3545;">-₹${Math.round(taxAmount)}</span>`;
+                        } else if (upfrontDiscount > 0) {
+                            taxDiscountDisplay = `<span style="color: #28a745;">+₹${Math.round(upfrontDiscount)}</span>`;
+                        } else {
+                            taxDiscountDisplay = '-';
+                        }
+                        
+                        row.innerHTML = `
+                            <td><input type="checkbox" ${transaction.included === false ? '' : 'checked'} onchange="toggleTransactionIncluded(${actualIndex}, this.checked)" title="Include in calculations" /></td>
+                            <td data-field="date">${date}</td>
+                            <td data-field="category">${category}</td>
+                            <td data-field="merchant">${merchant}</td>
+                            <td data-field="amount">₹${amount}</td>
+                            <td>${taxDiscountDisplay}</td>
+                            <td>${baseReward} + ${acceleratedReward} = <strong style="color: #28a745;">${totalReward} RP</strong></td>
+                            <td>${truePriceDisplay}</td>
+                            <td>${effectivePriceDisplay}</td>
+                            <td>${effectiveDiscountDisplay}</td>
+                            <td style="white-space: nowrap;">
+                                <button class="btn-primary" onclick="editRow(${actualIndex})" style="padding: 8px 12px; font-size: 1em; margin-right: 4px;" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="delete-btn" onclick="deleteTransaction(${actualIndex})" style="padding: 8px 12px; font-size: 1em;" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </td>
+                        `;
+                    } catch (rowErr) {
+                        console.error('🔴 Error rendering row:', rowErr, transaction);
+                        // Fallback minimal row
+                        const date = transaction?.date ? formatDate(transaction.date) : 'N/A';
+                        const category = escapeHtml(transaction?.category || 'N/A');
+                        const merchant = escapeHtml(transaction?.merchant || 'N/A');
+                        const amount = isNaN(transaction?.amount) ? '0' : Math.round(transaction.amount);
+                        row.innerHTML = `
+                            <td><input type="checkbox" checked disabled title="Include in calculations" /></td>
+                            <td>${date}</td>
+                            <td>${category}</td>
+                            <td>${merchant}</td>
+                            <td>₹${amount}</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>-</td>
+                            <td>0 RP</td>
+                            <td>0 RP</td>
+                            <td><strong>0 RP</strong></td>
+                            <td>₹${amount}</td>
+                            <td>₹0 (0.00%)</td>
+                            <td style="white-space: nowrap;"><button class="delete-btn" onclick="deleteTransaction(0)" title="Delete"><i class="fas fa-trash"></i></button></td>
+                        `;
+                    } finally {
+                        tbody.appendChild(row);
+                        console.log('🟢 Row appended to tbody');
+                    }
+                });
+                console.log('🟢 All rows rendered successfully');
+            } catch (err) {
+                console.error('🔴 Render transactions error:', err);
+                const tbody = document.getElementById('transactionsBody');
+                if (tbody) {
+                    tbody.innerHTML = '<tr><td colspan="14" style="text-align: center; color: #c00;">Error rendering transactions. Please check console.</td></tr>';
+                }
+            }
+        }
+
+        // In-place editing functionality
+        let currentEditingRow = null;
+
+        function editRow(index) {
+            // If there's already a row being edited, cancel it first
+            if (currentEditingRow !== null) {
+                cancelRowEdit();
+            }
+
+            currentEditingRow = index;
+            const transaction = transactions[index];
+            if (!transaction) return;
+
+            // Find the row element
+            const tbody = document.getElementById('transactionsBody');
+            const rows = tbody.querySelectorAll('tr');
+            const row = Array.from(rows).find(r => r.getAttribute('data-index') == index);
+            if (!row) return;
+
+            row.setAttribute('data-editing', 'true');
+            
+            // Get current values
+            const date = transaction.date || '';
+            const category = transaction.category || '';
+            const merchant = transaction.merchant || '';
+            const amount = parseFloat(transaction.amount) || 0;
+            const taxAmount = parseFloat(transaction.taxAmount) || 0;
+            const upfrontDiscount = parseFloat(transaction.upfrontDiscount) || 0;
+
+            // Build category dropdown options
+            const config = getCurrentCardConfig();
+            const categoryKeys = Object.keys(config.categories);
+            const seenGyftr = new Set();
+            let categoryOptions = '';
+            
+            categoryKeys.forEach(cat => {
+                if (cat === 'Voucher' || cat === 'Gyftr') {
+                    if (!seenGyftr.has('Gyftr')) {
+                        const cfg = config.categories['Voucher'] || config.categories['Gyftr'];
+                        const isSelected = (category === 'Voucher' || category === 'Gyftr') ? 'selected' : '';
+                        categoryOptions += `<option value="Gyftr" ${isSelected}>Gyftr (${cfg.multiplier}x)</option>`;
+                        seenGyftr.add('Gyftr');
+                    }
+                } else {
+                    const cfg = config.categories[cat];
+                    const isSelected = cat === category ? 'selected' : '';
+                    categoryOptions += `<option value="${escapeHtml(cat)}" ${isSelected}>${escapeHtml(cat)} (${cfg.multiplier}x)</option>`;
+                }
+            });
+
+            // Calculate baseAmount dynamically
+            const baseAmountValue = (parseFloat(amount) || 0) - (parseFloat(taxAmount) || 0);
+            
+            // Calculate display values
+            const baseAmtDisplay = baseAmountValue ? '₹' + Math.round(baseAmountValue) : '-';
+            const baseReward = Math.floor(transaction.baseReward || 0);
+            const acceleratedReward = Math.floor(transaction.acceleratedReward || 0);
+            const missedRP = Math.floor(transaction.missedRP || 0);
+            const totalReward = Math.floor(transaction.totalReward || 0);
+            const missedRPDisplay = missedRP === 0 ? '-' : `<span style="color: #dc3545;">${missedRP} RP</span>`;
+            const eff = computeEffectiveDisplay(transaction.totalReward, baseAmountValue, transaction.taxAmount, transaction.category);
+            
+            // Calculate true price (Base Amount + Upfront Discount)
+            const upfrontDiscountAmount = parseFloat(upfrontDiscount) || 0;
+            const truePrice = baseAmountValue + upfrontDiscountAmount;
+            const truePriceDisplay = '₹' + truePrice;
+            
+            // Calculate effective price including upfront discount
+            const totalChargedAmount = parseFloat(amount) || 0;
+            const totalRewardRupees = parseFloat(totalReward) || 0;
+            const effectivePrice = totalChargedAmount - totalRewardRupees - upfrontDiscountAmount;
+            const effectivePriceDisplay = effectivePrice > 0 ? '₹' + effectivePrice : '₹0';
+            
+            // Calculate effective discount: (total rewards - tax + upfront discount) / (base amount + upfront discount)
+            const taxAmountValue = parseFloat(taxAmount) || 0;
+            const totalDiscount = totalRewardRupees - taxAmountValue + upfrontDiscountAmount;
+            const denominator = totalChargedAmount + upfrontDiscountAmount;
+            const effectiveDiscountPct = denominator > 0 ? (totalDiscount / denominator * 100) : 0;
+            const effectiveDiscountDisplay = `₹${totalDiscount} (${effectiveDiscountPct.toFixed(2)}%)`;
+
+            // Replace row with editable version
+            row.innerHTML = `
+                <td><input type="checkbox" ${transaction.included === false ? '' : 'checked'} onchange="toggleTransactionIncluded(${index}, this.checked)" title="Include in calculations" /></td>
+                <td><input type="date" class="editable-input" value="${date}" id="editDate_${index}"></td>
+                <td>
+                    <select class="editable-select" id="editCategory_${index}">
+                        ${categoryOptions}
+                    </select>
+                </td>
+                <td><input type="text" class="editable-input" value="${escapeHtml(merchant)}" id="editMerchant_${index}" style="width: 120px;"></td>
+                <td><input type="number" step="0.01" min="0" class="editable-input" value="${amount}" id="editAmount_${index}" style="width: 100px;"></td>
+                <td>
+                    <span style="color: #dc3545;">-</span><input type="number" step="0.01" min="0" class="editable-input" value="${taxAmount}" id="editTax_${index}" style="width: 80px;" placeholder="Tax">
+                    <span style="color: #28a745;"> / +</span><input type="number" step="0.01" min="0" class="editable-input" value="${upfrontDiscount}" id="editUpfrontDiscount_${index}" style="width: 80px;" placeholder="Discount">
+                </td>
+                <td>${baseReward} + ${acceleratedReward} = <strong style="color: #28a745;">${totalReward} RP</strong></td>
+                <td>${truePriceDisplay}</td>
+                <td>${effectivePriceDisplay}</td>
+                <td>${effectiveDiscountDisplay}</td>
+                <td style="white-space: nowrap;">
+                    <button class="save-btn" onclick="saveRowEdit(${index})" style="padding: 8px 12px; font-size: 1em; margin-right: 4px;" title="Save">
+                        <i class="fas fa-check"></i>
+                    </button>
+                    <button class="cancel-btn" onclick="cancelRowEdit()" style="padding: 8px 12px; font-size: 1em;" title="Cancel">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </td>
+            `;
+
+            // Focus on first input
+            setTimeout(() => {
+                const firstInput = document.getElementById(`editDate_${index}`);
+                if (firstInput) firstInput.focus();
+            }, 10);
+        }
+
+        function saveRowEdit(index) {
+            const transaction = transactions[index];
+            if (!transaction) {
+                console.error('Transaction not found at index', index);
+                cancelRowEdit();
+                return;
+            }
+
+            // Get values from inputs
+            const newDate = document.getElementById(`editDate_${index}`)?.value;
+            const newCategory = document.getElementById(`editCategory_${index}`)?.value;
+            const newMerchant = document.getElementById(`editMerchant_${index}`)?.value || '';
+            const newAmount = parseFloat(document.getElementById(`editAmount_${index}`)?.value) || 0;
+            const newTax = parseFloat(document.getElementById(`editTax_${index}`)?.value) || 0;
+            const newUpfrontDiscount = parseFloat(document.getElementById(`editUpfrontDiscount_${index}`)?.value) || 0;
+
+            // Validate inputs
+            if (!newDate) {
+                showAlert('Please enter a valid date.', 'error');
+                return;
+            }
+            
+            if (!newCategory) {
+                showAlert('Please select a category.', 'error');
+                return;
+            }
+            
+            if (isNaN(newAmount) || newAmount <= 0) {
+                showAlert('Please enter a valid amount greater than 0.', 'error');
+                return;
+            }
+
+            // Update transaction
+            transaction.date = newDate;
+            transaction.category = newCategory;
+            transaction.merchant = newMerchant;
+            transaction.amount = newAmount;
+            transaction.taxAmount = newTax;
+            transaction.upfrontDiscount = newUpfrontDiscount;
+            
+            // Recalculate baseAmount (amount - tax)
+            transaction.baseAmount = newAmount - newTax;
+
+            // Clear editing state
+            currentEditingRow = null;
+
+            // Recalculate all rewards (this handles caps properly)
+            recalculateAllRewards();
+            
+            // Re-render the table
+            renderTransactions();
+            
+            // Show success message
+            showAlert('Transaction updated successfully!', 'success');
+        }
+
+        function cancelRowEdit() {
+            currentEditingRow = null;
+            renderTransactions();
+        }
+
+        function updateStats() {
+            // Stats section has been removed - this function is kept for compatibility
+            // but does not update any DOM elements
+        }
+
+
+        function updatePendingRewards() {
+            if (!currentCardType || !REWARD_CONFIG || Object.keys(REWARD_CONFIG).length === 0) {
+                document.getElementById('pendingRewardsSection').style.display = 'none';
+                const dividers = document.querySelectorAll('.section-divider');
+                dividers.forEach(d => d.style.display = 'none');
+                return;
+            }
+
+            const cardConfig = CARD_CONFIGS[currentCardType];
+            // Only consider included transactions
+            const includedTx = transactions.filter(t => t.included !== false);
+            // Display per-date daily caps for all dates that have transactions
+            const uniqueDates = Array.from(new Set(includedTx.map(t => t.date))).filter(Boolean).sort();
+            const uniqueMonths = Array.from(new Set(includedTx.map(t => t.date && t.date.substring(0,7))).values()).filter(Boolean).sort();
+
+            // Determine which SmartBuy multipliers are present
+            const smartBuyCategories = ['Hotels', 'IGP.com', 'Jockey', 'PharmEasy', 'Flights', 'RedBus', 'Voucher', 'Imagine', 'Nykaa', 'Myntra', 'MMT Holiday', 'Trains', 'Gyftr'];
+            const presentMultipliers = new Set();
+            Object.keys(REWARD_CONFIG).forEach(category => {
+                if (smartBuyCategories.includes(category)) {
+                    presentMultipliers.add(REWARD_CONFIG[category].multiplier);
+                }
+            });
+            const cols = [10, 5, 3].filter(m => presentMultipliers.has(m));
+
+            // Helper to compute purchasable amount for remaining bonus RP, block-accurate
+            const baseRPPerBlock = cardConfig.basePointsPerBlock || Math.round((cardConfig.blockSize || 150) * cardConfig.baseRate);
+            const blockValue = cardConfig.blockSize || 150;
+            function purchasable(remainingBonus, multiplier) {
+                if (remainingBonus === Infinity) return Infinity;
+                const bonusFactor = multiplier - 1;
+                if (bonusFactor <= 0 || baseRPPerBlock <= 0) return 0;
+                const blocks = Math.floor(remainingBonus / (baseRPPerBlock * bonusFactor));
+                return blocks * blockValue;
+            }
+
+            // Build Daily rows
+            const dailyRows = uniqueDates.map(date => {
+                const usedDaily = dailyAcceleratedRewards[date]?.smartbuy || 0;
+                const remainingDaily = cardConfig.smartBuyDailyCap ? Math.max(0, cardConfig.smartBuyDailyCap - usedDaily) : Infinity;
+                const row = { label: formatDate(date) };
+                cols.forEach(m => { row[m] = purchasable(remainingDaily, m); });
+                return row;
+            });
+
+            // Build Monthly rows with missed RP and rewards pending
+            const monthlyRows = uniqueMonths.map(month => {
+                const usedMonthly = monthlyAcceleratedRewards[month]?.smartbuy || 0;
+                const remainingMonthly = cardConfig.smartBuyMonthlyCap ? Math.max(0, cardConfig.smartBuyMonthlyCap - usedMonthly) : Infinity;
+                const monthLabel = new Date(`${month}-01`).toLocaleDateString('en-IN', { month: 'short', year: 'numeric' });
+                
+                // Calculate ALL rewards for this month (SmartBuy + Utility + Others)
+                const monthTransactions = transactions.filter(t => t.date && t.date.substring(0, 7) === month);
+                
+                const baseRewardsEarned = monthTransactions.reduce((sum, t) => sum + (parseFloat(t.baseReward) || 0), 0);
+                const acceleratedRewardsEarned = monthTransactions.reduce((sum, t) => sum + (parseFloat(t.acceleratedReward) || 0), 0);
+                const actualAcceleratedRewardsEarned = monthTransactions.reduce((sum, t) => sum + (parseFloat(t.actualAcceleratedReward) || 0), 0);
+                const missedRPForMonth = monthTransactions.reduce((sum, t) => sum + (parseFloat(t.missedRP) || 0), 0);
+                
+                const row = { 
+                    label: monthLabel,
+                    monthId: month, // Store original month identifier (YYYY-MM format)
+                    baseRewardsEarned: Math.floor(baseRewardsEarned),
+                    acceleratedRewardsEarned: Math.floor(acceleratedRewardsEarned),
+                    actualAcceleratedRewardsEarned: Math.floor(actualAcceleratedRewardsEarned),
+                    missedRP: Math.floor(missedRPForMonth)
+                };
+                cols.forEach(m => { row[m] = purchasable(remainingMonthly, m); });
+                
+                return row;
+            }).reverse();
+
+            // Note: Insurance cap tracking is handled in the main table
+            // Render pending rewards as a table to accommodate multiple dates/months
+            const grid = document.getElementById('pendingRewardsGrid');
+            grid.innerHTML = '';
+
+            if (dailyRows.length === 0 && monthlyRows.length === 0) {
+                document.getElementById('pendingRewardsSection').style.display = 'none';
+                const dividers = document.querySelectorAll('.section-divider');
+                dividers.forEach(d => d.style.display = 'none');
+                return;
+            }
+
+            document.getElementById('pendingRewardsSection').style.display = 'block';
+            const dividers = document.querySelectorAll('.section-divider');
+            dividers.forEach(d => d.style.display = 'block');
+
+            let html = '';
+            function renderTable(title, rows) {
+                if (!rows || rows.length === 0) return '';
+                const isMonthly = title.includes('Monthly');
+                let h = '<div style="overflow-x:auto; margin-bottom:12px;">';
+                h += `<h4 style=\"margin:6px 0 8px 0;\">${title}</h4>`;
+                h += '<table style="width: 100%;"><thead><tr><th title="Month in YYYY-MM format">' + (title.includes('Daily') ? 'Date' : 'Month') + '</th>';
+                if (isMonthly) {
+                    h += '<th style="color: #6c757d;" title="Base reward points earned in this month (1x multiplier) from ALL categories including Utility/Telecom/Grocery. Formula: Sum of all base rewards for the month">Base RP Earned</th>';
+                    h += '<th style="color: #007bff;" title="Bonus reward points earned from category multipliers (after applying daily/monthly caps). Formula: Sum of actual accelerated rewards earned">Accelerated RP Earned</th>';
+                    h += '<th style="color: #17a2b8;" title="Total reward points earned this month. Formula: Base RP Earned + Accelerated RP Earned">Total RP Earned</th>';
+                    h += '<th style="color: #28a745;" title="Remaining accelerated reward points available this month before hitting the SmartBuy monthly cap. Formula: Monthly Cap - Accelerated RP Earned">Total RP Pending</th>';
+                }
+                h += '<th style="color: #dc3545;" title="Reward points lost due to daily/monthly caps being exceeded. Formula: Potential Accelerated RP - Actual Accelerated RP Earned">Missed RP</th>';
+                cols.forEach(m => { h += `<th title="Remaining purchase capacity for ${m}× multiplier categories before hitting caps. Shows amount in ₹ that can still earn accelerated rewards.">${m}×</th>`; });
+                h += '</tr></thead><tbody>';
+                
+                let totalMissed = 0;
+                let totalBase = 0;
+                let totalAccelerated = 0;
+                let totalEarned = 0;
+                const currentDate = new Date();
+                const currentMonthYear = `${currentDate.getFullYear()}-${String(currentDate.getMonth() + 1).padStart(2, '0')}`;
+                
+                rows.forEach(r => {
+                    // Check if this row is for the current month
+                    let rowStyle = '';
+                    if (isMonthly && r.monthId && r.monthId === currentMonthYear) {
+                        rowStyle = ' style="background-color: #fff3cd; border-left: 4px solid #ffc107; font-weight: 600;"';
+                    }
+                    h += '<tr' + rowStyle + '>' + `<td>${escapeHtml(r.label)}</td>`;
+                    // Add reward columns (only for monthly)
+                    if (isMonthly) {
+                        const base = r.baseRewardsEarned || 0;
+                        const accelerated = r.acceleratedRewardsEarned || 0;
+                        const actualAccelerated = r.actualAcceleratedRewardsEarned || 0;
+                        const earned = base + actualAccelerated; // Use actual accelerated for total
+                        const maxAcceleratedCap = cardConfig.smartBuyMonthlyCap || 10000;
+                        const pending = Math.max(0, maxAcceleratedCap - actualAccelerated);
+                        
+                        totalBase += base;
+                        totalAccelerated += accelerated;
+                        totalEarned += earned;
+                        
+                        const baseDisplay = base > 0 ? `<span style="color: #6c757d; font-weight: 600;">${base.toLocaleString('en-IN')} RP</span>` : '-';
+                        const acceleratedDisplay = accelerated > 0 ? `<span style="color: #007bff; font-weight: 600;">${accelerated.toLocaleString('en-IN')} RP</span>` : '-';
+                        const earnedDisplay = earned > 0 ? `<span style="color: #17a2b8; font-weight: 600;">${earned.toLocaleString('en-IN')} RP</span>` : '-';
+                        const pendingDisplay = pending > 0 ? `<span style="color: #28a745; font-weight: 600;">${pending.toLocaleString('en-IN')} RP</span>` : '-';
+                        
+                        h += `<td>${baseDisplay}</td>`;
+                        h += `<td>${acceleratedDisplay}</td>`;
+                        h += `<td>${earnedDisplay}</td>`;
+                        h += `<td>${pendingDisplay}</td>`;
+                    }
+                    // Add missed RP cell
+                    const missed = r.missedRP || 0;
+                    totalMissed += missed;
+                    const missedDisplay = missed > 0 ? `<span style="color: #dc3545; font-weight: 600;">${missed.toLocaleString('en-IN')} RP</span>` : '-';
+                    h += `<td>${missedDisplay}</td>`;
+                    // Add purchase capacity columns at the end
+                    cols.forEach(m => {
+                        const v = r[m];
+                        h += `<td>${v === Infinity ? 'No Cap' : '₹' + (v || 0).toLocaleString('en-IN')}</td>`;
+                    });
+                    h += '</tr>';
+                });
+                
+                // Add total row if there's any data to show
+                if (totalEarned > 0) {
+                    h += '<tr style="font-weight: 600; border-top: 2px solid #dee2e6; background-color: #f8f9fa;">';
+                    h += '<td>Total</td>';
+                    if (isMonthly) {
+                        h += `<td></td>`; // Empty cell for Base RP Earned - don't sum this column
+                        h += `<td></td>`; // Empty cell for Accelerated RP Earned - don't sum this column
+                        h += `<td style="color: #17a2b8;">${totalEarned > 0 ? totalEarned.toLocaleString('en-IN') + ' RP' : '-'}</td>`;
+                        h += `<td></td>`; // Empty cell for Total RP Pending - don't sum this column
+                    }
+                    h += `<td></td>`; // Empty cell for Missed RP - don't sum this column
+                    cols.forEach(() => { h += '<td></td>'; }); // Empty cells for purchase capacity columns
+                    h += '</tr>';
+                }
+                
+                h += '</tbody></table></div>';
+                return h;
+            }
+
+            // Only show monthly capacity
+            html += renderTable('Monthly Purchase Capacity', monthlyRows);
+            grid.innerHTML = html;
+        }
+
+        // Build a workbook with a Transactions sheet and hidden Categories sheet and apply dropdown to Category column
+        function buildTemplateWorkbook(rows) {
+            // Determine categories from current card config or provide a fallback list
+            let categories;
+            if (currentCardType && REWARD_CONFIG) {
+                const keys = Object.keys(REWARD_CONFIG);
+                const seenGyftr = new Set();
+                categories = [];
+                keys.forEach(k => {
+                    if (k === 'Voucher' || k === 'Gyftr') {
+                        if (!seenGyftr.has('Gyftr')) {
+                            categories.push('Gyftr');
+                            seenGyftr.add('Gyftr');
+                        }
+                    } else {
+                        categories.push(k);
+                    }
+                });
+            } else {
+                categories = ['Hotels', 'Flights', 'Gyftr', 'Utility', 'Telecom', 'Grocery', 'Insurance', 'Others'];
+            }
+
+            // Transactions sheet (template structure)
+            const wsTrans = XLSX.utils.json_to_sheet(rows, { header: ['Use', 'Date', 'Category', 'Amount', 'Tax'] });
+            wsTrans['!cols'] = [
+                { wch: 6 },  // Use
+                { wch: 12 }, // Date
+                { wch: 36 }, // Category
+                { wch: 12 }, // Amount
+                { wch: 10 }  // Tax
+            ];
+
+            // Categories sheet
+            const categoryRows = [{ 'Category': 'Select from list' }, ...categories.map(name => ({ 'Category': name }))];
+            const wsCats = XLSX.utils.json_to_sheet(categoryRows, { header: ['Category'] });
+            wsCats['!cols'] = [{ wch: 40 }];
+
+            // Create workbook and append sheets (Transactions first)
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, wsTrans, 'Transactions');
+            XLSX.utils.book_append_sheet(wb, wsCats, 'Categories');
+
+            // Define Named Range for categories (A2:A{N})
+            const endRow = categories.length + 1; // header at A1
+            wb.Workbook = wb.Workbook || {};
+            wb.Workbook.Names = wb.Workbook.Names || [];
+            wb.Workbook.Names.push({ Name: 'CategoryList', Ref: `Categories!$A$2:$A$${endRow}` });
+
+            // Apply data validation (dropdown) to Category column (B2:B1048576)
+            wsTrans['!dataValidations'] = [
+                {
+                    type: 'list',
+                    allowBlank: 1,
+                    showErrorMessage: 1,
+                    errorStyle: 'stop',
+                    sqref: 'B2:B1048576',
+                    formulas: ['=CategoryList']
+                }
+            ];
+
+            // Attempt to hide Categories sheet
+            wb.Workbook.Sheets = wb.Workbook.Sheets || wb.SheetNames.map(n => ({ name: n }));
+            const idx = wb.SheetNames.indexOf('Categories');
+            if (idx >= 0 && wb.Workbook.Sheets[idx]) {
+                wb.Workbook.Sheets[idx].Hidden = 1; // 1 = hidden
+            }
+
+            return wb;
+        }
+
+        // Helper function to prepare export data
+        function prepareExportData() {
+            if (transactions.length === 0) {
+                showAlert('No transactions to export.', 'error');
+                return null;
+            }
+
+            if (!currentCardType) {
+                showAlert('No card type selected.', 'error');
+                return null;
+            }
+
+            // Follow the template structure (Use, Date, Category, Description, Amount, Tax, Upfront Discount)
+            // Excel format: Amount = base amount (for reward calculation), Tax = additional fees
+            // Note: UI shows "Total Charged" but Excel stores base amount for backward compatibility
+            const exportData = transactions.map(t => {
+                const combinedLabel = (t.category === 'Voucher' || t.category === 'Gyftr') ? 'Gyftr' : t.category;
+                return {
+                    'Use': t.included === false ? 'No' : 'Yes', // Save checkbox state
+                    'Date': t.date,
+                    'Category': combinedLabel,
+                    'Description': t.merchant || '',
+                    'Amount': Math.round((t.baseAmount || 0)), // Base amount for reward calculation
+                    'Tax': Math.round((t.taxAmount || 0)),
+                    'Upfront Discount': Math.round((t.upfrontDiscount || 0))
+                };
+            });
+
+            return buildTemplateWorkbook(exportData);
+        }
+
+        // Save to the same file that was loaded (uses File System Access API if available)
+        async function saveToExcel() {
+            console.log('🔍 saveToExcel called');
+            const wb = prepareExportData();
+            if (!wb) {
+                console.log('❌ prepareExportData returned null');
+                return;
+            }
+
+            console.log('✅ Export data prepared successfully');
+            console.log('🔍 fileHandle:', fileHandle);
+            console.log('🔍 loadedFileName:', loadedFileName);
+
+            // Use the loaded filename or generate a default one
+            let filename = loadedFileName;
+            if (!filename) {
+                const cardName = CARD_CONFIGS[currentCardType].name.replace(/\s+/g, '_');
+                filename = `${cardName}_Rewards.xlsx`;
+                loadedFileName = filename;
+                console.log('🔧 Generated default filename:', filename);
+            }
+
+            // Try to use File System Access API for true file overwriting (Chrome/Edge)
+            if (window.showSaveFilePicker && fileHandle) {
+                console.log('🔄 Attempting to save using existing file handle');
+                try {
+                    // Verify we have write permission
+                    const permission = await fileHandle.queryPermission({ mode: 'readwrite' });
+                    console.log('🔍 Current permission:', permission);
+                    
+                    if (permission !== 'granted') {
+                        console.log('⚠️ Write permission not granted, requesting...');
+                        const requestPermission = await fileHandle.requestPermission({ mode: 'readwrite' });
+                        console.log('🔍 Permission after request:', requestPermission);
+                        if (requestPermission !== 'granted') {
+                            throw new Error('Write permission denied');
+                        }
+                    }
+                    
+                    // Use existing file handle to overwrite
+                    console.log('📝 Creating writable stream...');
+                    const writable = await fileHandle.createWritable();
+                    console.log('📊 Writing workbook data...');
+                    const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                    console.log('📦 Buffer size:', buffer.byteLength, 'bytes');
+                    await writable.write(buffer);
+                    console.log('💾 Closing file...');
+                    await writable.close();
+                    console.log('✅ File saved successfully using file handle to:', filename);
+                    
+                    // Verify the file was actually written by reading it back
+                    try {
+                        const verifyFile = await fileHandle.getFile();
+                        console.log('🔍 Verification: File size after save:', verifyFile.size, 'bytes');
+                        console.log('🔍 Verification: Last modified:', new Date(verifyFile.lastModified).toLocaleString());
+                        if (verifyFile.size === buffer.byteLength) {
+                            console.log('✅ Verification successful: File size matches buffer size');
+                        } else {
+                            console.warn('⚠️ Warning: File size mismatch! Expected:', buffer.byteLength, 'Got:', verifyFile.size);
+                        }
+                    } catch (verifyErr) {
+                        console.error('❌ Could not verify file after save:', verifyErr);
+                    }
+                    
+                    showAlert('✅ File saved successfully: ' + filename, 'success');
+                    return;
+                } catch (err) {
+                    console.log('❌ File handle save failed, falling back:', err);
+                    fileHandle = null; // Clear invalid handle
+                }
+            }
+
+            // Fallback: Try to get a new file handle and save
+            if (window.showSaveFilePicker) {
+                console.log('🔄 Attempting to save using new file picker');
+                try {
+                    const options = {
+                        suggestedName: filename,
+                        types: [{
+                            description: 'Excel Files',
+                            accept: { 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'] }
+                        }]
+                    };
+                    fileHandle = await window.showSaveFilePicker(options);
+                    const writable = await fileHandle.createWritable();
+                    const buffer = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                    await writable.write(buffer);
+                    await writable.close();
+                    loadedFileName = fileHandle.name; // Update with actual saved name
+                    console.log('✅ File saved successfully using new file picker');
+                    showAlert('✅ File saved: ' + fileHandle.name, 'success');
+                    return;
+                } catch (err) {
+                    if (err.name === 'AbortError') {
+                        console.log('ℹ️ Save cancelled by user');
+                        showAlert('Save cancelled', 'info');
+                        return;
+                    }
+                    console.log('❌ Save file picker failed, using download:', err);
+                }
+            }
+
+            // Final fallback: traditional download
+            console.log('🔄 Using traditional download fallback');
+            XLSX.writeFile(wb, filename);
+            console.log('✅ File downloaded successfully');
+            showAlert('💾 Downloaded: ' + filename + ' - Check your Downloads folder. Move it to replace your original file.', 'success');
+        }
+
+        // Download with a new timestamped filename
+        function downloadExcel() {
+            const wb = prepareExportData();
+            if (!wb) return;
+
+            // Generate filename with timestamp and card name
+            const timestamp = new Date().toISOString().replace(/[:.]/g, '-').split('T')[0];
+            const cardName = CARD_CONFIGS[currentCardType].name.replace(/\s+/g, '_');
+            const filename = `${cardName}_Rewards_${timestamp}.xlsx`;
+
+            // Save file
+            XLSX.writeFile(wb, filename);
+            showAlert('Excel file downloaded: ' + filename, 'success');
+        }
+
+        function downloadTemplate() {
+            // Build a workbook that follows the template and includes Category dropdown
+            const categories = getDisplayCategories();
+            const c1 = categories[0] || 'Gyftr';
+            const c2 = categories[1] || 'Hotels';
+            const c3 = categories[2] || 'Flights';
+            const wb = buildTemplateWorkbook([
+                { 'Use': 'Yes', 'Date': '2025-11-01', 'Category': c1, 'Description': 'Amazon Pay Voucher', 'Amount': 1500, 'Tax': 0, 'Upfront Discount': 0 },
+                { 'Use': 'Yes', 'Date': '2025-11-02', 'Category': c2, 'Description': 'Hotel Booking', 'Amount': 5000, 'Tax': 0, 'Upfront Discount': 0 },
+                { 'Use': 'Yes', 'Date': '2025-11-03', 'Category': c3, 'Description': 'Flight Booking', 'Amount': 1000, 'Tax': 0, 'Upfront Discount': 0 }
+            ]);
+
+            const filename = currentCardType ? 
+                `${CARD_CONFIGS[currentCardType].name.replace(/\s+/g, '_')}_Template.xlsx` : 
+                'Credit_Card_Template.xlsx';
+
+            XLSX.writeFile(wb, filename);
+            showAlert('Template downloaded successfully!', 'success');
+        }
+
+        function showAlert(message, type) {
+            const container = document.getElementById('alertContainer');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.appendChild(alert);
+
+            // Auto dismiss after 4 seconds
+            setTimeout(() => {
+                alert.classList.add('hiding');
+            setTimeout(() => {
+                alert.remove();
+                }, 300); // Wait for animation to complete
+            }, 4000);
+        }
+
+        function formatDate(dateString) {
+            try {
+                if (!dateString) return 'N/A';
+                
+                // Parse date safely
+                const date = new Date(dateString + 'T00:00:00');
+                
+                if (isNaN(date.getTime())) {
+                    return dateString; // Return original if can't parse
+                }
+                
+                return date.toLocaleDateString('en-IN', { 
+                    day: '2-digit', 
+                    month: 'short', 
+                    year: 'numeric' 
+                });
+            } catch (error) {
+                console.error('Date formatting error:', error, dateString);
+                return dateString || 'N/A';
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+
+        // Compute effective discount/profit display
+        // For vouchers/gift cards: value received = face value (baseAmount)
+        // For other transactions: value received = amount spent
+        // Profit = (value received + rewards in ₹) - amount spent
+        function computeEffectiveDisplay(totalRewardPoints, baseAmount, taxAmount, category) {
+            try {
+                const totalRP = parseFloat(totalRewardPoints) || 0;
+                const base = parseFloat(baseAmount) || 0;
+                const tax = parseFloat(taxAmount) || 0;
+                const amountSpent = base + tax; // Total charged to card
+                
+                // Convert RP to ₹ (assuming 1 RP = ₹1 for HDFC)
+                const rewardsInRupees = totalRP;
+                
+                // Determine if this is a voucher/gift card transaction
+                const isVoucher = category && (
+                    category.includes('Voucher') || 
+                    category.includes('Gyftr') || 
+                    category.toLowerCase().includes('gift')
+                );
+                
+                let profit, profitPctVsSpent, profitPctVsFaceValue;
+                
+                if (isVoucher) {
+                    // For vouchers: you get face value (baseAmount) + rewards
+                    // Value received = baseAmount (face value) + rewards
+                    const valueReceived = base + rewardsInRupees;
+                    profit = valueReceived - amountSpent;
+                    profitPctVsSpent = amountSpent > 0 ? (profit / amountSpent) * 100 : 0;
+                    
+                    return {
+                        display: `₹${profit} (${profitPctVsSpent.toFixed(2)}%)`,
+                        profit: profit,
+                        profitPct: profitPctVsSpent
+                    };
+                } else {
+                    // For regular transactions: profit = rewards only
+                    profit = rewardsInRupees;
+                    profitPctVsSpent = amountSpent > 0 ? (profit / amountSpent) * 100 : 0;
+                    
+                    return {
+                        display: `₹${profit} (${profitPctVsSpent.toFixed(2)}%)`,
+                        profit: profit,
+                        profitPct: profitPctVsSpent
+                    };
+                }
+            } catch (err) {
+                console.error('🔴 Effective discount calculation error:', err);
+                return { display: '₹0 (0.00%)', profit: 0, profitPct: 0 };
+            }
+        }
+
+        // Initialize when DOM is fully loaded
+        function initialize() {
+            // Set transaction date to today
+            const dateInput = document.getElementById('transactionDate');
+            if (dateInput) {
+                dateInput.valueAsDate = new Date();
+            }
+            
+            loadSavedCardType(); // Load saved card from cookie
+            renderTransactions();
+            updateStats();
+            
+            // Add keyboard shortcut for Save (Cmd+S / Ctrl+S)
+            document.addEventListener('keydown', function(e) {
+                if ((e.metaKey || e.ctrlKey) && e.key === 's') {
+                    e.preventDefault(); // Prevent browser's default save
+                    saveToExcel();
+                }
+            });
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initialize);
+        } else {
+            // DOM is already loaded
+            initialize();
+        }
+    </script>
+</body>
+</html>
+

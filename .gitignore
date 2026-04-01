@@ -1,0 +1,15 @@
+# Excel files (transaction data)
+*.xlsx
+*.xls
+
+# macOS
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
