@@ -2,6 +2,8 @@
 
 A browser-based rewards calculator for premium HDFC credit cards. No installs, no backend — just open the HTML file and start tracking.
 
+**🔗 Live app: https://williamscott701.github.io/HDFC-DCBM-Rewards-Calculator/**
+
 Also includes a detailed reference analysis for the **Axis Magnus Burgundy** card.
 
 ---
@@ -20,8 +22,11 @@ Also includes a detailed reference analysis for the **Axis Magnus Burgundy** car
 
 ### Getting Started
 
+**Option 1 — use it online:** open https://williamscott701.github.io/HDFC-DCBM-Rewards-Calculator/ — nothing to install, nothing leaves your browser.
+
+**Option 2 — run it locally:**
 1. Download or clone this repo
-2. Open `rewards-calculator.html` in any modern browser
+2. Open `index.html` (or `rewards-calculator.html`) in any modern browser
 3. Select your HDFC card from the dropdown
 4. Add transactions and view rewards in real-time
 
@@ -123,7 +128,8 @@ For each transaction (oldest first):
 
 | File | Description |
 |---|---|
-| `rewards-calculator.html` | Main calculator app (single self-contained file) |
+| `index.html` | Main calculator app, served live via GitHub Pages |
+| `rewards-calculator.html` | Identical copy of the app, for local/offline use |
 | `Axis_Magnus_Rewards_Analysis.md` | Reference guide for Axis Magnus Burgundy rewards |
 
 ### Dependencies (CDN)
@@ -177,6 +183,22 @@ Open the browser console (`F12`) for detailed error messages during import and v
 - Initial release: multi-card support, cap engine, Excel import/export, validation, premium UI
 
 ---
+
+## Share This
+
+Live app: **https://williamscott701.github.io/HDFC-DCBM-Rewards-Calculator/**
+Repo: **https://github.com/williamscott701/HDFC-DCBM-Rewards-Calculator**
+
+Ready-to-post blurbs if you want to share it:
+
+**Reddit / forum post**
+> Built a free, open-source rewards calculator for HDFC's premium metal cards (Infinia, Diners Club Black, Regalia, Diners Privilege). It tracks daily/monthly SmartBuy caps transaction-by-transaction so you actually know when you've hit your cap instead of guessing. Runs entirely in the browser — no signup, no data sent anywhere. Supports Excel import/export. Feedback welcome: https://williamscott701.github.io/HDFC-DCBM-Rewards-Calculator/
+
+**Twitter / X**
+> Track your HDFC Infinia / Diners Club Black Metal rewards down to the daily & monthly SmartBuy cap — free, open-source, runs 100% in your browser. No signup, no tracking. 🔗 https://williamscott701.github.io/HDFC-DCBM-Rewards-Calculator/ #HDFC #CreditCards #PersonalFinance
+
+**LinkedIn**
+> Sharing a small open-source tool I built: a rewards calculator for premium HDFC credit cards (Infinia Metal, Diners Club Black Metal, Regalia, Diners Privilege). It replicates HDFC's actual SmartBuy cap logic — daily & monthly caps, processed in chronological order — so you can see exactly how much accelerated reward you've earned and how much cap headroom is left. Fully client-side, Excel import/export, MIT licensed. Try it: https://williamscott701.github.io/HDFC-DCBM-Rewards-Calculator/
 
 ## Contributing
 
